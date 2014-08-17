@@ -6,6 +6,7 @@ BUILD_ROOT = "./build"
 SRC_ROOT = "source"
 OBJ_ROOT = BUILD_ROOT + "/objs"
 DEP_ROOT = BUILD_ROOT + "/deps"
+BIN_ROOT = BUILD_ROOT + "/bin"
 
 ### file extensions ###
 SRC_EXT = '.cpp'
@@ -109,13 +110,17 @@ def make_raspi_url()
   return "#{user}@#{host}"
 end
 
+def make_exe_path()
+  return "#{BIN_ROOT}/#{TARGET}"
+end
+
 ### tasks ###
 task :default => :build
 
 desc "Setup build directories"
 task :setup do
   Dir.glob("#{SRC_ROOT}/**/").each do |src_dir|
-    [OBJ_ROOT, DEP_ROOT].each do |root|
+    [OBJ_ROOT, DEP_ROOT, BIN_ROOT].each do |root|
       dir = change_root(src_dir, SRC_ROOT, root)
       FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
     end
@@ -137,8 +142,9 @@ end
 desc "Deploy executables to raspberry pi"
 task :deploy => :build do |t|
   raspi_path = make_raspi_url
-  dest = "#{raspi_path}:~/dev/#{PRODUCT}/"
-  sh "rsync #{TARGET} #{dest}"
+  src_path = make_exe_path
+  dest_path = "#{raspi_path}:~/dev/#{PRODUCT}/"
+  sh "rsync #{src_path} #{dest_path}"
 end
 
 CLEAN.include(BUILD_ROOT)
@@ -148,7 +154,8 @@ CLOBBER.include(TARGET)
 OBJS = FileList[SRCS.map{|src| obj_path(src)}]
 
 file TARGET => OBJS do |f|
-  sh "#{COMPILER} #{LIB_DIRS.to_option_s} -o #{TARGET} #{LIBS.to_option_s} #{f.prerequisites.join(' ')}"
+  exe = make_exe_path
+  sh "#{COMPILER} #{LIB_DIRS.to_option_s} -o #{exe} #{LIBS.to_option_s} #{f.prerequisites.join(' ')}"
 end
 
 ### rules ###
