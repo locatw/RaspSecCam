@@ -1,0 +1,141 @@
+require 'fileutils'
+
+### directories ###
+BUILD_ROOT = "./build"
+SRC_ROOT = "source"
+OBJ_ROOT = BUILD_ROOT + "/objs"
+DEP_ROOT = BUILD_ROOT + "/deps"
+
+### file extensions ###
+SRC_EXT = '.cpp'
+OBJ_EXT = '.o'
+DEP_EXT = '.mf'
+
+### constants ###
+TARGET = "rasp_sec_cam_server"
+
+COMPILER = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
+CXX_FLAGS = ["-std=c++11"]
+INC_DIRS = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
+EXT_LIB_DIRS = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
+                "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
+LIB_DIRS = EXT_LIB_DIRS
+
+SRCS = FileList["#{SRC_ROOT}/**/*#{SRC_EXT}"]
+EXT_LIBS = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
+LIBS = EXT_LIBS
+
+### methods ###
+def CXX_FLAGS.to_option_s
+  self.join(' ')
+end
+
+def INC_DIRS.to_option_s
+  self.map{|dir| "-I#{dir}"}.join(" ")
+end
+
+def LIB_DIRS.to_option_s
+  self.map{|dir| "-L#{dir}"}.join(" ")
+end
+
+def LIBS.to_option_s
+  self.map{|lib| "-l#{lib}"}.join(" ")
+end
+
+def change_root(path, from, to)
+  path.gsub(Regexp.new("\\A" + from), to)
+end
+
+def convert_path(file, to)
+  ext = File.extname(file)
+  root_dir =
+    case ext
+    when SRC_EXT then SRC_ROOT
+    when OBJ_EXT then OBJ_ROOT
+    when DEP_EXT then DEP_ROOT
+    end
+  new_root, new_ext =
+    case to
+    when :source then [SRC_ROOT, SRC_EXT]
+    when :object then [OBJ_ROOT, OBJ_EXT]
+    when :depend then [DEP_ROOT, DEP_EXT]
+    end
+  change_root(file, root_dir, new_root).gsub(Regexp.new("\\#{ext}$"), new_ext)
+end
+
+def src_path(file)
+  convert_path(file, :source)
+end
+
+def obj_path(file)
+  convert_path(file, :object)
+end
+
+def dep_path(file)
+  convert_path(file, :depend)
+end
+
+def load_depfile(depfile)
+  lines = []
+  File.open(depfile).each_line do |line|
+    lines << line.gsub(/\\\n$/, "")
+    next if line.end_with?("\\")
+  end
+
+  obj, deps = lines.join(" ").split(':', 2)
+  deps = deps.split(' ').map{|s| s.strip}
+  return obj, deps
+end
+
+def collect_dependencies(objfile)
+  depfile = dep_path(objfile)
+
+  file(depfile).invoke
+
+  obj, deps = load_depfile(depfile)
+  objfile.include?(obj) ? deps : []
+end
+
+def remove_file(filename)
+  rm_r filename if File.exist?(filename)
+end
+
+### tasks ###
+task :default => :build
+
+desc "Setup build directories"
+task :setup do
+  Dir.glob("#{SRC_ROOT}/**/").each do |src_dir|
+    [OBJ_ROOT, DEP_ROOT].each do |root|
+      dir = change_root(src_dir, SRC_ROOT, root)
+      FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
+    end
+  end
+end
+
+desc "Build executable"
+task :build do |t|
+  task(:setup).invoke
+  task(TARGET).invoke
+end
+
+### file tasks ###
+OBJS = FileList[SRCS.map{|src| obj_path(src)}]
+
+file TARGET => OBJS do |f|
+  sh "#{COMPILER} #{LIB_DIRS.to_option_s} -o #{TARGET} #{LIBS.to_option_s} #{f.prerequisites.join(' ')}"
+end
+
+### rules ###
+rule '.o' => [proc{|objfile| collect_dependencies(objfile)}] do |r|
+  objfile = r.name
+  srcfile = src_path(objfile)
+  sh "#{COMPILER} #{CXX_FLAGS.to_option_s} #{INC_DIRS.to_option_s} -o #{objfile} -c #{srcfile}"
+end
+
+rule DEP_EXT do |r|
+  srcfile = src_path(r.name)
+  depfile = dep_path(srcfile)
+  objfile = obj_path(srcfile)
+  sh "#{COMPILER} #{CXX_FLAGS.to_option_s} #{INC_DIRS.to_option_s} -MM -MT #{objfile} #{srcfile} -MF #{depfile}"
+end
