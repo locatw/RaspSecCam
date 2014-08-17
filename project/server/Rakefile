@@ -128,6 +128,12 @@ task :build do |t|
   task(TARGET).invoke
 end
 
+desc "Rebuild executable"
+task :rebuild do |t|
+  task(:clobber).invoke
+  task(:build).invoke
+end
+
 desc "Deploy executables to raspberry pi"
 task :deploy => :build do |t|
   raspi_path = make_raspi_url
