@@ -12,6 +12,7 @@ OBJ_EXT = '.o'
 DEP_EXT = '.mf'
 
 ### constants ###
+PRODUCT = "RaspSecCam"
 TARGET = "rasp_sec_cam_server"
 
 COMPILER = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
@@ -100,6 +101,13 @@ def remove_file(filename)
   rm_r filename if File.exist?(filename)
 end
 
+def make_raspi_url()
+  user = ENV["RASPI_USER"]
+  host = ENV["RASPI_HOST"]
+
+  return "#{user}@#{host}"
+end
+
 ### tasks ###
 task :default => :build
 
@@ -117,6 +125,13 @@ desc "Build executable"
 task :build do |t|
   task(:setup).invoke
   task(TARGET).invoke
+end
+
+desc "Deploy executables to raspberry pi"
+task :deploy => :build do |t|
+  raspi_path = make_raspi_url
+  dest = "#{raspi_path}:~/dev/#{PRODUCT}/"
+  sh "rsync #{TARGET} #{dest}"
 end
 
 ### file tasks ###
