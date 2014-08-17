@@ -1,3 +1,4 @@
+require 'rake/clean'
 require 'fileutils'
 
 ### directories ###
@@ -133,6 +134,9 @@ task :deploy => :build do |t|
   dest = "#{raspi_path}:~/dev/#{PRODUCT}/"
   sh "rsync #{TARGET} #{dest}"
 end
+
+CLEAN.include(BUILD_ROOT)
+CLOBBER.include(TARGET)
 
 ### file tasks ###
 OBJS = FileList[SRCS.map{|src| obj_path(src)}]
