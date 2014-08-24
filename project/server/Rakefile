@@ -1,6 +1,48 @@
 require 'rake/clean'
 require 'fileutils'
 
+class CppCompiler
+  include FileUtils
+
+  def initialize(compiler_bin)
+    @compiler = compiler_bin
+    @cpp_flags = []
+    @inc_dirs = []
+    @lib_dirs = []
+    @libs = []
+  end
+
+  def make_dependency_file(srcfile, objfile, outputfile)
+    sh "#{@compiler} #{cpp_flag_options} #{inc_dirs_options} -MM -MT #{objfile} #{srcfile} -MF #{outputfile}"
+  end
+
+  def add_cpp_flag(flag)
+    @cpp_flags << flag
+  end
+
+  def add_include_dir(dir)
+    @inc_dirs << dir
+  end
+
+  def add_library_dir(dir)
+    @lib_dirs << dir
+  end
+
+  def add_library(library)
+    @libs << library
+  end
+
+  private
+
+  def cpp_flag_options
+    @cpp_flags.join(' ')
+  end
+
+  def inc_dirs_options
+    @inc_dirs.map{|dir| "-I#{dir}"}.join(" ")
+  end
+end
+
 class BuildSystem
   TARGET = "rasp_sec_cam_server"
 
