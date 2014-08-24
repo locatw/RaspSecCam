@@ -79,6 +79,7 @@ class BuildSystem
   def initialize
     @src_files = FileList[]
     CLEAN.include(build_root)
+    CLOBBER.include(TARGET)
   end
 
   def retrieve_source_files
@@ -306,8 +307,6 @@ task :deploy => :build do |t|
   dest_path = "#{raspi_path}:~/dev/#{PRODUCT}/"
   sh "rsync #{src_path} #{dest_path}"
 end
-
-CLOBBER.include(TARGET)
 
 ### file tasks ###
 file TARGET => [build_system.get_dependent_objfiles].flatten do |f|
