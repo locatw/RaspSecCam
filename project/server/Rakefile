@@ -1,6 +1,48 @@
 require 'rake/clean'
 require 'fileutils'
 
+class BuildSystem
+  def initialize
+  end
+
+  def setup_build_directory
+    Dir.glob("#{src_root}/**/").each do |src_dir|
+      [obj_root, dep_root, bin_root].each do |root|
+        dir = change_root(src_dir, src_root, root)
+        FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
+      end
+    end
+  end
+
+  private
+
+  def change_root(path, from, to)
+    path.gsub(Regexp.new("\\A" + from), to)
+  end
+
+  def build_root
+    "./build"
+  end
+
+  def obj_root
+    build_root + "/objs"
+  end
+
+  def dep_root
+    build_root + "/deps"
+  end
+
+  def bin_root
+    build_root + "/bin"
+  end
+
+  def src_root
+    "source"
+  end
+end
+
+build_system = BuildSystem.new
+
 ### directories ###
 BUILD_ROOT = "./build"
 SRC_ROOT = "source"
@@ -119,12 +161,7 @@ task :default => :build
 
 desc "Setup build directories"
 task :setup do
-  Dir.glob("#{SRC_ROOT}/**/").each do |src_dir|
-    [OBJ_ROOT, DEP_ROOT, BIN_ROOT].each do |root|
-      dir = change_root(src_dir, SRC_ROOT, root)
-      FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
-    end
-  end
+  build_system.setup_build_directory
 end
 
 desc "Build executable"
