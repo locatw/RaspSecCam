@@ -2,6 +2,8 @@ require 'rake/clean'
 require 'fileutils'
 
 class BuildSystem
+  TARGET = "rasp_sec_cam_server"
+
   SRC_EXT = '.cpp'
   OBJ_EXT = '.o'
   DEP_EXT = '.mf'
@@ -17,6 +19,11 @@ class BuildSystem
         FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
       end
     end
+  end
+
+  def build
+    Rake::Task[:setup].invoke
+    Rake::Task[TARGET].invoke
   end
 
   def collect_dependencies(objfile)
@@ -192,8 +199,7 @@ end
 
 desc "Build executable"
 task :build do |t|
-  task(:setup).invoke
-  task(TARGET).invoke
+  build_system.build
 end
 
 desc "Rebuild executable"
