@@ -61,6 +61,7 @@ class CppCompiler
 end
 
 class BuildSystem
+  PRODUCT = "RaspSecCam"
   TARGET = "rasp_sec_cam_server"
   COMPILER = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
 
@@ -148,6 +149,13 @@ class BuildSystem
     objfile.include?(obj) ? deps : []
   end
 
+  def make_raspi_url()
+    user = ENV["RASPI_USER"]
+    host = ENV["RASPI_HOST"]
+  
+    return "#{user}@#{host}"
+  end
+
   def exe_path()
     return "#{bin_root}/#{TARGET}"
   end
@@ -231,17 +239,6 @@ end
 build_system = BuildSystem.new
 build_system.retrieve_source_files
 
-### constants ###
-PRODUCT = "RaspSecCam"
-
-### methods ###
-def make_raspi_url()
-  user = ENV["RASPI_USER"]
-  host = ENV["RASPI_HOST"]
-
-  return "#{user}@#{host}"
-end
-
 ### tasks ###
 task :default => :build
 
@@ -262,9 +259,9 @@ end
 
 desc "Deploy executables to raspberry pi"
 task :deploy => :build do |t|
-  raspi_path = make_raspi_url
+  raspi_path = build_system.make_raspi_url
   src_path = build_system.exe_path
-  dest_path = "#{raspi_path}:~/dev/#{PRODUCT}/"
+  dest_path = "#{raspi_path}:~/dev/#{BuildSystem::PRODUCT}/"
   sh "rsync #{src_path} #{dest_path}"
 end
 
