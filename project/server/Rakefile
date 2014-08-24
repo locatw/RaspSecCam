@@ -11,6 +11,10 @@ class CppCompiler
     @lib_dirs = []
     @libs = []
   end
+  
+  def make_object_file(srcfile, objfile)
+    sh "#{@compiler} #{cpp_flag_options} #{inc_dirs_options} -o #{objfile} -c #{srcfile}"
+  end
 
   def make_dependency_file(srcfile, objfile, outputfile)
     sh "#{@compiler} #{cpp_flag_options} #{inc_dirs_options} -MM -MT #{objfile} #{srcfile} -MF #{outputfile}"
@@ -92,6 +96,11 @@ class BuildSystem
   def rebuild
     invoke_task(:clobber)
     invoke_task(:build)
+  end
+
+  def make_object_file(objfile)
+    srcfile = src_path(objfile)
+    @compiler.make_object_file(srcfile, objfile)
   end
 
   def make_dependency_file(depfilename)
@@ -318,9 +327,7 @@ end
 
 ### rules ###
 rule '.o' => [proc{|objfile| build_system.collect_dependencies(objfile)}] do |r|
-  objfile = r.name
-  srcfile = src_path(objfile)
-  sh "#{COMPILER} #{CXX_FLAGS.to_option_s} #{INC_DIRS.to_option_s} -o #{objfile} -c #{srcfile}"
+  build_system.make_object_file(r.name)
 end
 
 rule DEP_EXT do |r|
