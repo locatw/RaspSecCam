@@ -231,12 +231,8 @@ end
 build_system = BuildSystem.new
 build_system.retrieve_source_files
 
-### file extensions ###
-DEP_EXT = '.mf'
-
 ### constants ###
 PRODUCT = "RaspSecCam"
-TARGET = "rasp_sec_cam_server"
 
 ### methods ###
 def make_raspi_url()
@@ -273,15 +269,15 @@ task :deploy => :build do |t|
 end
 
 ### file tasks ###
-file TARGET => [build_system.get_dependent_objfiles].flatten do |f|
+file BuildSystem::TARGET => [build_system.get_dependent_objfiles].flatten do |f|
   build_system.make_target(f.prerequisites)
 end
 
 ### rules ###
-rule '.o' => [proc{|objfile| build_system.collect_dependencies(objfile)}] do |r|
+rule BuildSystem::OBJ_EXT => [proc{|objfile| build_system.collect_dependencies(objfile)}] do |r|
   build_system.make_object_file(r.name)
 end
 
-rule DEP_EXT do |r|
+rule BuildSystem::DEP_EXT do |r|
   build_system.make_dependency_file(r.name)
 end
