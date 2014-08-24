@@ -3,6 +3,7 @@ require 'fileutils'
 
 class BuildSystem
   def initialize
+    CLEAN.include(build_root)
   end
 
   def setup_build_directory
@@ -184,7 +185,6 @@ task :deploy => :build do |t|
   sh "rsync #{src_path} #{dest_path}"
 end
 
-CLEAN.include(BUILD_ROOT)
 CLOBBER.include(TARGET)
 
 ### file tasks ###
