@@ -77,7 +77,12 @@ class BuildSystem
   DEP_EXT = '.mf'
 
   def initialize
+    @src_files = FileList[]
     CLEAN.include(build_root)
+  end
+
+  def retrieve_source_files
+    @src_files = FileList["#{src_root}/**/*#{SRC_EXT}"]
   end
 
   def setup_build_directory
@@ -111,6 +116,10 @@ class BuildSystem
   def rebuild
     invoke_task(:clobber)
     invoke_task(:build)
+  end
+
+  def get_dependent_objfiles
+    FileList[@src_files.map{|src| obj_path(src)}]
   end
 
   def make_target(dependent_objfiles)
@@ -219,6 +228,7 @@ class BuildSystem
 end
 
 build_system = BuildSystem.new
+build_system.retrieve_source_files
 
 ### directories ###
 BUILD_ROOT = "./build"
@@ -237,8 +247,6 @@ PRODUCT = "RaspSecCam"
 TARGET = "rasp_sec_cam_server"
 
 COMPILER = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
-
-SRCS = FileList["#{SRC_ROOT}/**/*#{SRC_EXT}"]
 
 ### methods ###
 def change_root(path, from, to)
@@ -306,9 +314,7 @@ end
 CLOBBER.include(TARGET)
 
 ### file tasks ###
-OBJS = FileList[SRCS.map{|src| obj_path(src)}]
-
-file TARGET => OBJS do |f|
+file TARGET => [build_system.get_dependent_objfiles].flatten do |f|
   build_system.make_target(f.prerequisites)
 end
 
