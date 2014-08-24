@@ -214,8 +214,6 @@ PRODUCT = "RaspSecCam"
 TARGET = "rasp_sec_cam_server"
 
 COMPILER = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
-CXX_FLAGS = ["-std=c++11"]
-INC_DIRS = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
 EXT_LIB_DIRS = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
                 "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
 LIB_DIRS = EXT_LIB_DIRS
@@ -225,14 +223,6 @@ EXT_LIBS = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vco
 LIBS = EXT_LIBS
 
 ### methods ###
-def CXX_FLAGS.to_option_s
-  self.join(' ')
-end
-
-def INC_DIRS.to_option_s
-  self.map{|dir| "-I#{dir}"}.join(" ")
-end
-
 def LIB_DIRS.to_option_s
   self.map{|dir| "-L#{dir}"}.join(" ")
 end
@@ -262,20 +252,8 @@ def convert_path(file, to)
   change_root(file, root_dir, new_root).gsub(Regexp.new("\\#{ext}$"), new_ext)
 end
 
-def src_path(file)
-  convert_path(file, :source)
-end
-
 def obj_path(file)
   convert_path(file, :object)
-end
-
-def dep_path(file)
-  convert_path(file, :depend)
-end
-
-def remove_file(filename)
-  rm_r filename if File.exist?(filename)
 end
 
 def make_raspi_url()
