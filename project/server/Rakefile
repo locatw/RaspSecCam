@@ -22,8 +22,8 @@ class BuildSystem
   end
 
   def build
-    Rake::Task[:setup].invoke
-    Rake::Task[TARGET].invoke
+    invoke_task(:setup)
+    invoke_task(TARGET)
   end
 
   def collect_dependencies(objfile)
@@ -36,6 +36,10 @@ class BuildSystem
   end
 
   private
+
+  def invoke_task(task)
+    Rake::Task[task].invoke
+  end
 
   def load_depfile(depfile)
     lines = []
