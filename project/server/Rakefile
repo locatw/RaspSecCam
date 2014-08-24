@@ -77,6 +77,8 @@ class BuildSystem
   OBJ_EXT = '.o'
   DEP_EXT = '.mf'
 
+  include Rake::DSL
+
   def initialize
     @src_files = FileList[]
     CLEAN.include(build_root)
@@ -109,6 +111,22 @@ class BuildSystem
     end
     LIBS.each do |lib|
       @compiler.add_library(lib)
+    end
+
+    file TARGET => [get_dependent_objfiles].flatten do |f|
+      make_target(f.prerequisites)
+    end
+
+    rule OBJ_EXT => [proc{|objfile| collect_dependencies(objfile)}] do |r|
+      make_object_file(r.name)
+    end
+    
+    rule DEP_EXT do |r|
+      make_dependency_file(r.name)
+    end
+
+    task :setup do
+      setup_build_directory
     end
 
     invoke_task(:setup)
@@ -242,11 +260,6 @@ build_system.retrieve_source_files
 ### tasks ###
 task :default => :build
 
-desc "Setup build directories"
-task :setup do
-  build_system.setup_build_directory
-end
-
 desc "Build executable"
 task :build do |t|
   build_system.build
@@ -263,18 +276,4 @@ task :deploy => :build do |t|
   src_path = build_system.exe_path
   dest_path = "#{raspi_path}:~/dev/#{BuildSystem::PRODUCT}/"
   sh "rsync #{src_path} #{dest_path}"
-end
-
-### file tasks ###
-file BuildSystem::TARGET => [build_system.get_dependent_objfiles].flatten do |f|
-  build_system.make_target(f.prerequisites)
-end
-
-### rules ###
-rule BuildSystem::OBJ_EXT => [proc{|objfile| build_system.collect_dependencies(objfile)}] do |r|
-  build_system.make_object_file(r.name)
-end
-
-rule BuildSystem::DEP_EXT do |r|
-  build_system.make_dependency_file(r.name)
 end
