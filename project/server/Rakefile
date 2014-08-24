@@ -83,20 +83,7 @@ class BuildSystem
   end
 
   def build
-    @compiler = CppCompiler.new COMPILER
-    CXX_FLAGS.each do |flag|
-      @compiler.add_cpp_flag(flag)
-    end
-    INC_DIRS.each do |dir|
-      @compiler.add_include_dir(dir)
-    end
-    LIB_DIRS.each do |dir|
-      @compiler.add_library_dir(dir)
-    end
-    LIBS.each do |lib|
-      @compiler.add_library(lib)
-    end
-
+    setup_compiler
     retrieve_source_files
 
     define_target_file_task
@@ -127,6 +114,22 @@ class BuildSystem
   end
 
   private
+
+  def setup_compiler
+    @compiler = CppCompiler.new COMPILER
+    CXX_FLAGS.each do |flag|
+      @compiler.add_cpp_flag(flag)
+    end
+    INC_DIRS.each do |dir|
+      @compiler.add_include_dir(dir)
+    end
+    LIB_DIRS.each do |dir|
+      @compiler.add_library_dir(dir)
+    end
+    LIBS.each do |lib|
+      @compiler.add_library(lib)
+    end
+  end
 
   def retrieve_source_files
     @src_files = FileList["#{src_root}/**/*#{SRC_EXT}"]
