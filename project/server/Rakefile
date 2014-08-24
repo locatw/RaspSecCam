@@ -26,6 +26,11 @@ class BuildSystem
     invoke_task(TARGET)
   end
 
+  def rebuild
+    invoke_task(:clobber)
+    invoke_task(:build)
+  end
+
   def collect_dependencies(objfile)
     depfile = dep_path(objfile)
   
@@ -212,8 +217,7 @@ end
 
 desc "Rebuild executable"
 task :rebuild do |t|
-  task(:clobber).invoke
-  task(:build).invoke
+  build_system.rebuild
 end
 
 desc "Deploy executables to raspberry pi"
