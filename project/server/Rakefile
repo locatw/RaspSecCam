@@ -113,6 +113,8 @@ class BuildSystem
       @compiler.add_library(lib)
     end
 
+    retrieve_source_files
+
     define_target_file_task
     define_object_file_task
     define_dep_file_task
@@ -265,7 +267,6 @@ class BuildSystem
 end
 
 build_system = BuildSystem.new
-build_system.retrieve_source_files
 
 ### tasks ###
 task :default => :build
