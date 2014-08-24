@@ -11,6 +11,11 @@ class CppCompiler
     @lib_dirs = []
     @libs = []
   end
+
+  def make_target(dependent_objfiles, exefile)
+    objs = dependent_objfiles.join(' ')
+    sh "#{@compiler} #{lib_dir_options} -o #{exefile} #{lib_options} #{objs}"
+  end
   
   def make_object_file(srcfile, objfile)
     sh "#{@compiler} #{cpp_flag_options} #{inc_dirs_options} -o #{objfile} -c #{srcfile}"
@@ -45,6 +50,14 @@ class CppCompiler
   def inc_dirs_options
     @inc_dirs.map{|dir| "-I#{dir}"}.join(" ")
   end
+
+  def lib_dir_options
+    @lib_dirs.map{|dir| "-L#{dir}"}.join(" ")
+  end
+
+  def lib_options
+    @libs.map{|lib| "-l#{lib}"}.join(" ")
+  end
 end
 
 class BuildSystem
@@ -56,6 +69,8 @@ class BuildSystem
   EXT_LIB_DIRS = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
                   "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
   LIB_DIRS = EXT_LIB_DIRS
+  EXT_LIBS = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
+  LIBS = EXT_LIBS
   
   SRC_EXT = '.cpp'
   OBJ_EXT = '.o'
@@ -96,6 +111,10 @@ class BuildSystem
   def rebuild
     invoke_task(:clobber)
     invoke_task(:build)
+  end
+
+  def make_target(dependent_objfiles)
+    @compiler.make_target(dependent_objfiles, exe_path)
   end
 
   def make_object_file(objfile)
@@ -151,6 +170,10 @@ class BuildSystem
 
   def dep_path(file)
     convert_path(file, :depend)
+  end
+
+  def exe_path()
+    return "#{BIN_ROOT}/#{TARGET}"
   end
 
   def change_root(path, from, to)
@@ -214,23 +237,10 @@ PRODUCT = "RaspSecCam"
 TARGET = "rasp_sec_cam_server"
 
 COMPILER = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
-EXT_LIB_DIRS = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
-                "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
-LIB_DIRS = EXT_LIB_DIRS
 
 SRCS = FileList["#{SRC_ROOT}/**/*#{SRC_EXT}"]
-EXT_LIBS = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
-LIBS = EXT_LIBS
 
 ### methods ###
-def LIB_DIRS.to_option_s
-  self.map{|dir| "-L#{dir}"}.join(" ")
-end
-
-def LIBS.to_option_s
-  self.map{|lib| "-l#{lib}"}.join(" ")
-end
-
 def change_root(path, from, to)
   path.gsub(Regexp.new("\\A" + from), to)
 end
@@ -299,8 +309,7 @@ CLOBBER.include(TARGET)
 OBJS = FileList[SRCS.map{|src| obj_path(src)}]
 
 file TARGET => OBJS do |f|
-  exe = make_exe_path
-  sh "#{COMPILER} #{LIB_DIRS.to_option_s} -o #{exe} #{LIBS.to_option_s} #{f.prerequisites.join(' ')}"
+  build_system.make_target(f.prerequisites)
 end
 
 ### rules ###
