@@ -147,6 +147,10 @@ class BuildSystem
     objfile.include?(obj) ? deps : []
   end
 
+  def exe_path()
+    return "#{BIN_ROOT}/#{TARGET}"
+  end
+
   private
 
   def invoke_task(task)
@@ -179,10 +183,6 @@ class BuildSystem
 
   def dep_path(file)
     convert_path(file, :depend)
-  end
-
-  def exe_path()
-    return "#{BIN_ROOT}/#{TARGET}"
   end
 
   def change_root(path, from, to)
@@ -281,10 +281,6 @@ def make_raspi_url()
   return "#{user}@#{host}"
 end
 
-def make_exe_path()
-  return "#{BIN_ROOT}/#{TARGET}"
-end
-
 ### tasks ###
 task :default => :build
 
@@ -306,7 +302,7 @@ end
 desc "Deploy executables to raspberry pi"
 task :deploy => :build do |t|
   raspi_path = make_raspi_url
-  src_path = make_exe_path
+  src_path = build_system.exe_path
   dest_path = "#{raspi_path}:~/dev/#{PRODUCT}/"
   sh "rsync #{src_path} #{dest_path}"
 end
