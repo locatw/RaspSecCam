@@ -45,7 +45,14 @@ end
 
 class BuildSystem
   TARGET = "rasp_sec_cam_server"
+  COMPILER = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
 
+  CXX_FLAGS = ["-std=c++11"]
+  INC_DIRS = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
+  EXT_LIB_DIRS = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
+                  "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
+  LIB_DIRS = EXT_LIB_DIRS
+  
   SRC_EXT = '.cpp'
   OBJ_EXT = '.o'
   DEP_EXT = '.mf'
@@ -64,6 +71,20 @@ class BuildSystem
   end
 
   def build
+    @compiler = CppCompiler.new COMPILER
+    CXX_FLAGS.each do |flag|
+      @compiler.add_cpp_flag(flag)
+    end
+    INC_DIRS.each do |dir|
+      @compiler.add_include_dir(dir)
+    end
+    LIB_DIRS.each do |dir|
+      @compiler.add_library_dir(dir)
+    end
+    LIBS.each do |lib|
+      @compiler.add_library(lib)
+    end
+
     invoke_task(:setup)
     invoke_task(TARGET)
   end
@@ -71,6 +92,10 @@ class BuildSystem
   def rebuild
     invoke_task(:clobber)
     invoke_task(:build)
+  end
+
+  def make_dependency_file(srcfile, objfile, depfile)
+    @compiler.make_dependency_file(srcfile, objfile, depfile)
   end
 
   def collect_dependencies(objfile)
@@ -291,5 +316,5 @@ rule DEP_EXT do |r|
   srcfile = src_path(r.name)
   depfile = dep_path(srcfile)
   objfile = obj_path(srcfile)
-  sh "#{COMPILER} #{CXX_FLAGS.to_option_s} #{INC_DIRS.to_option_s} -MM -MT #{objfile} #{srcfile} -MF #{depfile}"
+  build_system.make_dependency_file(srcfile, objfile, depfile)
 end
