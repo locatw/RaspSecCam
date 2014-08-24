@@ -2,6 +2,10 @@ require 'rake/clean'
 require 'fileutils'
 
 class BuildSystem
+  SRC_EXT = '.cpp'
+  OBJ_EXT = '.o'
+  DEP_EXT = '.mf'
+
   def initialize
     CLEAN.include(build_root)
   end
@@ -15,10 +19,52 @@ class BuildSystem
     end
   end
 
+  def collect_dependencies(objfile)
+    depfile = dep_path(objfile)
+  
+    Rake::FileTask[depfile].invoke
+  
+    obj, deps = load_depfile(depfile)
+    objfile.include?(obj) ? deps : []
+  end
+
   private
+
+  def load_depfile(depfile)
+    lines = []
+    File.open(depfile).each_line do |line|
+      lines << line.gsub(/\\\n$/, "")
+      next if line.end_with?("\\")
+    end
+  
+    obj, deps = lines.join(" ").split(':', 2)
+    deps = deps.split(' ').map{|s| s.strip}
+    return obj, deps
+  end
+
+  def dep_path(file)
+    convert_path(file, :depend)
+  end
 
   def change_root(path, from, to)
     path.gsub(Regexp.new("\\A" + from), to)
+  end
+  
+  def convert_path(file, to)
+    ext = File.extname(file)
+    root_dir =
+      case ext
+      when SRC_EXT then src_root 
+      when OBJ_EXT then obj_root
+      when DEP_EXT then dep_root
+      end
+    new_root, new_ext =
+      case to
+      when :source then [src_root, SRC_EXT]
+      when :object then [obj_root, OBJ_EXT]
+      when :depend then [dep_root, DEP_EXT]
+      end
+    change_root(file, root_dir, new_root).gsub(Regexp.new("\\#{ext}$"), new_ext)
   end
 
   def build_root
@@ -121,27 +167,6 @@ def dep_path(file)
   convert_path(file, :depend)
 end
 
-def load_depfile(depfile)
-  lines = []
-  File.open(depfile).each_line do |line|
-    lines << line.gsub(/\\\n$/, "")
-    next if line.end_with?("\\")
-  end
-
-  obj, deps = lines.join(" ").split(':', 2)
-  deps = deps.split(' ').map{|s| s.strip}
-  return obj, deps
-end
-
-def collect_dependencies(objfile)
-  depfile = dep_path(objfile)
-
-  file(depfile).invoke
-
-  obj, deps = load_depfile(depfile)
-  objfile.include?(obj) ? deps : []
-end
-
 def remove_file(filename)
   rm_r filename if File.exist?(filename)
 end
@@ -196,7 +221,7 @@ file TARGET => OBJS do |f|
 end
 
 ### rules ###
-rule '.o' => [proc{|objfile| collect_dependencies(objfile)}] do |r|
+rule '.o' => [proc{|objfile| build_system.collect_dependencies(objfile)}] do |r|
   objfile = r.name
   srcfile = src_path(objfile)
   sh "#{COMPILER} #{CXX_FLAGS.to_option_s} #{INC_DIRS.to_option_s} -o #{objfile} -c #{srcfile}"
