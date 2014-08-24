@@ -94,7 +94,10 @@ class BuildSystem
     invoke_task(:build)
   end
 
-  def make_dependency_file(srcfile, objfile, depfile)
+  def make_dependency_file(depfilename)
+    srcfile = src_path(depfilename)
+    depfile = dep_path(srcfile)
+    objfile = obj_path(srcfile)
     @compiler.make_dependency_file(srcfile, objfile, depfile)
   end
 
@@ -127,6 +130,14 @@ class BuildSystem
     obj, deps = lines.join(" ").split(':', 2)
     deps = deps.split(' ').map{|s| s.strip}
     return obj, deps
+  end
+
+  def src_path(file)
+    convert_path(file, :source)
+  end
+  
+  def obj_path(file)
+    convert_path(file, :object)
   end
 
   def dep_path(file)
@@ -313,8 +324,5 @@ rule '.o' => [proc{|objfile| build_system.collect_dependencies(objfile)}] do |r|
 end
 
 rule DEP_EXT do |r|
-  srcfile = src_path(r.name)
-  depfile = dep_path(srcfile)
-  objfile = obj_path(srcfile)
-  build_system.make_dependency_file(srcfile, objfile, depfile)
+  build_system.make_dependency_file(r.name)
 end
