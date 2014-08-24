@@ -266,18 +266,18 @@ class BuildSystem
   end
 end
 
-build_system = BuildSystem.new
-
 ### tasks ###
 task :default => :build
 
 desc "Build executable"
 task :build do |t|
+  build_system = BuildSystem.new
   build_system.build
 end
 
 desc "Rebuild executable"
 task :rebuild do |t|
+  build_system = BuildSystem.new
   build_system.rebuild
 end
 
