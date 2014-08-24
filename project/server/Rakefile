@@ -113,17 +113,9 @@ class BuildSystem
       @compiler.add_library(lib)
     end
 
-    file TARGET => [get_dependent_objfiles].flatten do |f|
-      make_target(f.prerequisites)
-    end
-
-    rule OBJ_EXT => [proc{|objfile| collect_dependencies(objfile)}] do |r|
-      make_object_file(r.name)
-    end
-    
-    rule DEP_EXT do |r|
-      make_dependency_file(r.name)
-    end
+    define_target_file_task
+    define_object_file_task
+    define_dep_file_task
 
     task :setup do
       setup_build_directory
@@ -179,6 +171,24 @@ class BuildSystem
   end
 
   private
+
+  def define_target_file_task
+    file TARGET => [get_dependent_objfiles].flatten do |f|
+      make_target(f.prerequisites)
+    end
+  end
+
+  def define_object_file_task
+    rule OBJ_EXT => [proc{|objfile| collect_dependencies(objfile)}] do |r|
+      make_object_file(r.name)
+    end
+  end
+
+  def define_dep_file_task
+    rule DEP_EXT do |r|
+      make_dependency_file(r.name)
+    end
+  end
 
   def invoke_task(task)
     Rake::Task[task].invoke
