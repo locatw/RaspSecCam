@@ -116,8 +116,6 @@ class BuildSystem
   private
 
   def generate_tasks
-    task :default => :build
-    
     desc "Build executable"
     task :build do |t|
       build
