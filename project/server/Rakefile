@@ -289,13 +289,13 @@ class BuildSystem
   end
 end
 
-build_system = BuildSystem.new :server do |compiler|
-  cpp_flags = ["-std=c++11"]
-  include_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
-  library_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
-                  "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
-  libraries = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
+cpp_flags = ["-std=c++11"]
+include_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
+library_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
+                "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
+libraries = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
 
+build_system = BuildSystem.new :server do |compiler|
   compiler.target = "rasp_sec_cam_server"
   compiler.compiler_path = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
   cpp_flags.each do |flag|
