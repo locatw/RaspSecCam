@@ -5,25 +5,31 @@ PRODUCT = "RaspSecCam"
 class CppCompiler
   include FileUtils
 
-  def initialize(compiler_bin)
-    @compiler = compiler_bin
+  attr_accessor *%i[
+    target
+    compiler_path
+  ]
+
+  def initialize
+    @target = nil
+    @compiler_path = nil
     @cpp_flags = []
-    @inc_dirs = []
-    @lib_dirs = []
-    @libs = []
+    @include_dirs = []
+    @library_dirs = []
+    @libraries = []
   end
 
   def make_target(dependent_objfiles, exefile)
     objs = dependent_objfiles.join(' ')
-    sh "#{@compiler} #{lib_dir_options} -o #{exefile} #{lib_options} #{objs}"
+    sh "#{@compiler_path} #{lib_dir_options} -o #{exefile} #{lib_options} #{objs}"
   end
   
   def make_object_file(srcfile, objfile)
-    sh "#{@compiler} #{cpp_flag_options} #{inc_dirs_options} -o #{objfile} -c #{srcfile}"
+    sh "#{@compiler_path} #{cpp_flag_options} #{inc_dirs_options} -o #{objfile} -c #{srcfile}"
   end
 
   def make_dependency_file(srcfile, objfile, outputfile)
-    sh "#{@compiler} #{cpp_flag_options} #{inc_dirs_options} -MM -MT #{objfile} #{srcfile} -MF #{outputfile}"
+    sh "#{@compiler_path} #{cpp_flag_options} #{inc_dirs_options} -MM -MT #{objfile} #{srcfile} -MF #{outputfile}"
   end
 
   def add_cpp_flag(flag)
@@ -31,15 +37,15 @@ class CppCompiler
   end
 
   def add_include_dir(dir)
-    @inc_dirs << dir
+    @include_dirs << dir
   end
 
   def add_library_dir(dir)
-    @lib_dirs << dir
+    @library_dirs << dir
   end
 
   def add_library(library)
-    @libs << library
+    @libraries << library
   end
 
   private
@@ -49,41 +55,15 @@ class CppCompiler
   end
 
   def inc_dirs_options
-    @inc_dirs.map{|dir| "-I#{dir}"}.join(" ")
+    @include_dirs.map{|dir| "-I#{dir}"}.join(" ")
   end
 
   def lib_dir_options
-    @lib_dirs.map{|dir| "-L#{dir}"}.join(" ")
+    @library_dirs.map{|dir| "-L#{dir}"}.join(" ")
   end
 
   def lib_options
-    @libs.map{|lib| "-l#{lib}"}.join(" ")
-  end
-end
-
-class BuildConfig
-  attr_accessor *%i[
-    target
-    compiler_path
-    cpp_flags
-    include_dirs
-    external_lib_dirs
-    library_dirs
-    external_libraries
-    libraries
-  ]
-
-  def initialize(&block)
-    @target = nil
-    @compiler_path = nil
-    @cpp_flags = []
-    @include_dirs = []
-    @external_lib_dirs = []
-    @library_dirs = []
-    @external_libraries = []
-    @libraries = []
-
-    yield self
+    @libraries.map{|lib| "-l#{lib}"}.join(" ")
   end
 end
 
@@ -94,25 +74,16 @@ class BuildSystem
 
   include Rake::DSL
 
-  def initialize
-    @config = BuildConfig.new do |c|
-      c.target = "rasp_sec_cam_server"
-      c.compiler_path = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
-      c.cpp_flags = ["-std=c++11"]
-      c.include_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
-      c.external_lib_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
-                            "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
-      c.library_dirs = [c.external_lib_dirs].flatten
-      c.external_libraries = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
-      c.libraries = [c.external_libraries].flatten
-    end
-
-    @compiler = nil
+  def initialize(&block)
     @source_files = FileList[]
+    @compiler = CppCompiler.new
+
+    yield @compiler
+
+    generate_tasks
   end
 
   def build
-    setup_compiler
     retrieve_source_files
 
     define_target_file_task
@@ -124,7 +95,7 @@ class BuildSystem
     end
 
     invoke_task(:setup)
-    invoke_task(@config.target)
+    invoke_task(@compiler.target)
   end
 
   def rebuild
@@ -144,19 +115,27 @@ class BuildSystem
 
   private
 
-  def setup_compiler
-    @compiler = CppCompiler.new @config.compiler_path
-    @config.cpp_flags.each do |flag|
-      @compiler.add_cpp_flag(flag)
+  def generate_tasks
+    task :default => :build
+    
+    desc "Build executable"
+    task :build do |t|
+      build
     end
-    @config.include_dirs.each do |dir|
-      @compiler.add_include_dir(dir)
+    
+    desc "Rebuild executable"
+    task :rebuild do |t|
+      rebuild
     end
-    @config.library_dirs.each do |dir|
-      @compiler.add_library_dir(dir)
+
+    desc "Remove any temporary products"
+    task :clean do |t|
+      clean
     end
-    @config.libraries.each do |lib|
-      @compiler.add_library(lib)
+    
+    desc "Remove any generated file"
+    task :clobber do |t|
+      clobber
     end
   end
 
@@ -210,11 +189,11 @@ class BuildSystem
   end
 
   def exe_path()
-    return "#{bin_root}/#{@config.target}"
+    return "#{bin_root}/#{@compiler.target}"
   end
 
   def define_target_file_task
-    file @config.target => [get_dependent_objfiles].flatten do |f|
+    file @compiler.target => [get_dependent_objfiles].flatten do |f|
       make_target(f.prerequisites)
     end
   end
@@ -309,32 +288,28 @@ class BuildSystem
   end
 end
 
-### tasks ###
-task :default => :build
+build_system = BuildSystem.new do |compiler|
+  cpp_flags = ["-std=c++11"]
+  include_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
+  library_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
+                  "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
+  libraries = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
 
-desc "Build executable"
-task :build do |t|
-  build_system = BuildSystem.new
-  build_system.build
-end
-
-desc "Rebuild executable"
-task :rebuild do |t|
-  build_system = BuildSystem.new
-  build_system.rebuild
-end
-
-desc "Remove any temporary products"
-task :clean do |t|
-  build_system = BuildSystem.new
-  build_system.clean
-end
-
-desc "Remove any generated file"
-task :clobber do |t|
-  build_system = BuildSystem.new
-  build_system.clobber
-end
+  compiler.target = "rasp_sec_cam_server"
+  compiler.compiler_path = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
+  cpp_flags.each do |flag|
+    compiler.add_cpp_flag(flag)
+  end
+  include_dirs.each do |dir|
+    compiler.add_include_dir(dir)
+  end 
+  library_dirs.each do |dir|
+    compiler.add_library_dir(dir)
+  end
+  libraries.each do |library|
+    compiler.add_library(library)
+  end 
+end 
 
 desc "Deploy executables to raspberry pi"
 task :deploy => :build do |t|
