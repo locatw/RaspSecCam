@@ -74,7 +74,8 @@ class BuildSystem
 
   include Rake::DSL
 
-  def initialize(&block)
+  def initialize(task_namespace, &block)
+    @task_namespace = task_namespace
     @source_files = FileList[]
     @compiler = CppCompiler.new
 
@@ -100,7 +101,7 @@ class BuildSystem
 
   def rebuild
     clobber
-    invoke_task(:build)
+    invoke_task("#{@task_namespace.to_s}:build")
   end
 
   def clean
@@ -116,24 +117,26 @@ class BuildSystem
   private
 
   def generate_tasks
-    desc "Build executable"
-    task :build do |t|
-      build
-    end
-    
-    desc "Rebuild executable"
-    task :rebuild do |t|
-      rebuild
-    end
+    namespace @task_namespace do
+      desc "Build executable"
+      task :build do |t|
+        build
+      end
+      
+      desc "Rebuild executable"
+      task :rebuild do |t|
+        rebuild
+      end
 
-    desc "Remove any temporary products"
-    task :clean do |t|
-      clean
-    end
-    
-    desc "Remove any generated file"
-    task :clobber do |t|
-      clobber
+      desc "Remove any temporary products"
+      task :clean do |t|
+        clean
+      end
+      
+      desc "Remove any generated file"
+      task :clobber do |t|
+        clobber
+      end
     end
   end
 
@@ -286,7 +289,7 @@ class BuildSystem
   end
 end
 
-build_system = BuildSystem.new do |compiler|
+build_system = BuildSystem.new :server do |compiler|
   cpp_flags = ["-std=c++11"]
   include_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
   library_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
