@@ -74,18 +74,42 @@ class BuildSystem
 
   include Rake::DSL
 
-  def initialize(task_namespace, &block)
+  attr_accessor :target, :compiler_path
+  attr_accessor :cpp_flags, :include_dirs, :library_dirs, :libraries, :sources
+  attr_accessor :source_root_dir, :build_root_dir
+
+  def initialize(task_namespace)
     @task_namespace = task_namespace
-    @source_files = FileList[]
     @compiler = CppCompiler.new
 
-    yield @compiler
+    @target = nil
+    @compiler_path = nil
+    @cpp_flags = []
+    @include_dirs = []
+    @library_dirs = []
+    @libraries = []
+    @sources = FileList[]
+    @source_root_dir = nil
+    @build_root_dir = nil
 
     generate_tasks
   end
 
   def build
-    retrieve_source_files
+    @compiler.target = @target
+    @compiler.compiler_path = @compiler_path
+    @cpp_flags.each do |flag|
+      @compiler.add_cpp_flag(flag)
+    end
+    @include_dirs.each do |dir|
+      @compiler.add_include_dir(dir)
+    end
+    @library_dirs.each do |dir|
+      @compiler.add_library_dir(dir)
+    end
+    @libraries.each do |library|
+      @compiler.add_library(library)
+    end
 
     define_target_file_task
     define_object_file_task
@@ -96,7 +120,7 @@ class BuildSystem
     end
 
     invoke_task(:setup)
-    invoke_task(@compiler.target)
+    invoke_task(@target)
   end
 
   def rebuild
@@ -140,10 +164,6 @@ class BuildSystem
     end
   end
 
-  def retrieve_source_files
-    @source_files = FileList["#{src_root}/**/*#{SRC_EXT}"]
-  end
-
   def setup_build_directory
     Dir.glob("#{src_root}/**/").each do |src_dir|
       [obj_root, dep_root, bin_root].each do |root|
@@ -154,7 +174,7 @@ class BuildSystem
   end
 
   def get_dependent_objfiles
-    FileList[@source_files.map{|src| obj_path(src)}]
+    FileList[@sources.map{|src| obj_path(src)}]
   end
 
   def make_target(dependent_objfiles)
@@ -190,24 +210,30 @@ class BuildSystem
   end
 
   def exe_path()
-    return "#{bin_root}/#{@compiler.target}"
+    return "#{bin_root}/#{@target}"
   end
 
   def define_target_file_task
-    file @compiler.target => [get_dependent_objfiles].flatten do |f|
-      make_target(f.prerequisites)
+    namespace @task_namespace do
+      file @target => [get_dependent_objfiles].flatten do |f|
+        make_target(f.prerequisites)
+      end
     end
   end
 
   def define_object_file_task
-    rule OBJ_EXT => [proc{|objfile| collect_dependencies(objfile)}] do |r|
-      make_object_file(r.name)
+    namespace @task_namespace do
+      rule OBJ_EXT => [proc{|objfile| collect_dependencies(objfile)}] do |r|
+        make_object_file(r.name)
+      end
     end
   end
 
   def define_dep_file_task
-    rule DEP_EXT do |r|
-      make_dependency_file(r.name)
+    namespace @task_namespace do
+      rule DEP_EXT do |r|
+        make_dependency_file(r.name)
+      end
     end
   end
 
@@ -264,24 +290,24 @@ class BuildSystem
     change_root(file, root_dir, new_root).gsub(Regexp.new("\\#{ext}$"), new_ext)
   end
 
+  def src_root
+    @source_root_dir
+  end
+
   def build_root
-    "./build"
+    @build_root_dir
   end
 
   def obj_root
-    build_root + "/objs"
+    @build_root_dir + "/objs"
   end
 
   def dep_root
-    build_root + "/deps"
+    @build_root_dir + "/deps"
   end
 
   def bin_root
-    build_root + "/bin"
-  end
-
-  def src_root
-    "source"
+    @build_root_dir + "/bin"
   end
 
   def remove_file(filename)
@@ -289,28 +315,24 @@ class BuildSystem
   end
 end
 
+SRC_ROOT = "source"
+
 cpp_flags = ["-std=c++11"]
 include_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
 library_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
                 "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
 libraries = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
 
-server_build_system = BuildSystem.new :server do |compiler|
-  compiler.target = "rasp_sec_cam_server"
-  compiler.compiler_path = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
-  cpp_flags.each do |flag|
-    compiler.add_cpp_flag(flag)
-  end
-  include_dirs.each do |dir|
-    compiler.add_include_dir(dir)
-  end 
-  library_dirs.each do |dir|
-    compiler.add_library_dir(dir)
-  end
-  libraries.each do |library|
-    compiler.add_library(library)
-  end 
-end 
+server_build_system = BuildSystem.new :server
+server_build_system.target = "rasp_sec_cam_server"
+server_build_system.compiler_path = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
+server_build_system.cpp_flags = cpp_flags.clone
+server_build_system.include_dirs = include_dirs.clone
+server_build_system.library_dirs = library_dirs.clone
+server_build_system.libraries = libraries.clone
+server_build_system.sources = FileList["#{SRC_ROOT}/**/*#{BuildSystem::SRC_EXT}"]
+server_build_system.source_root_dir = "source"
+server_build_system.build_root_dir = "./build"
 
 desc "Deploy executables to raspberry pi"
 task :deploy => :build do |t|
