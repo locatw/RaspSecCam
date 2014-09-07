@@ -2,342 +2,50 @@ require 'fileutils'
 
 PRODUCT = "RaspSecCam"
 
-class CppCompiler
-  include FileUtils
+SERVER_NAMESPACE = "server"
+namespace SERVER_NAMESPACE do
+  TARGET = "rasp-sec-cam-server"
+  BIN_DIR = "bin"
+  BUILD_DIR = "build"
 
-  attr_accessor *%i[
-    target
-    compiler_path
-  ]
-
-  def initialize
-    @target = nil
-    @compiler_path = nil
-    @cpp_flags = []
-    @include_dirs = []
-    @library_dirs = []
-    @libraries = []
+  task :setup do |t|
+    FileUtils.mkdir_p(BUILD_DIR) unless Dir.exist?(BUILD_DIR) 
   end
 
-  def make_target(dependent_objfiles, exefile)
-    objs = dependent_objfiles.join(' ')
-    sh "#{@compiler_path} #{lib_dir_options} -o #{exefile} #{lib_options} #{objs}"
+  desc "Build executable"
+  task :build => :setup do |t|
+    cd BUILD_DIR do
+      sh "cmake -DCMAKE_INSTALL_PREFIX=.. .."
+      sh "make"
+      sh "make install"
+    end
   end
   
-  def make_object_file(srcfile, objfile)
-    sh "#{@compiler_path} #{cpp_flag_options} #{inc_dirs_options} -o #{objfile} -c #{srcfile}"
+  desc "Rebuild executable"
+  task :rebuild do |t|
+    Rake::Task["#{SERVER_NAMESPACE}:clobber"].invoke
+    Rake::Task["#{SERVER_NAMESPACE}:build"].invoke
   end
 
-  def make_dependency_file(srcfile, objfile, outputfile)
-    sh "#{@compiler_path} #{cpp_flag_options} #{inc_dirs_options} -MM -MT #{objfile} #{srcfile} -MF #{outputfile}"
+  desc "Remove any temporary products"
+  task :clean do |t|
+    rm_r BUILD_DIR if File.exists?(BUILD_DIR)
   end
-
-  def add_cpp_flag(flag)
-    @cpp_flags << flag
-  end
-
-  def add_include_dir(dir)
-    @include_dirs << dir
-  end
-
-  def add_library_dir(dir)
-    @library_dirs << dir
-  end
-
-  def add_library(library)
-    @libraries << library
-  end
-
-  private
-
-  def cpp_flag_options
-    @cpp_flags.join(' ')
-  end
-
-  def inc_dirs_options
-    @include_dirs.map{|dir| "-I#{dir}"}.join(" ")
-  end
-
-  def lib_dir_options
-    @library_dirs.map{|dir| "-L#{dir}"}.join(" ")
-  end
-
-  def lib_options
-    @libraries.map{|lib| "-l#{lib}"}.join(" ")
-  end
-end
-
-class BuildSystem
-  SRC_EXT = '.cpp'
-  OBJ_EXT = '.o'
-  DEP_EXT = '.mf'
-
-  include Rake::DSL
-
-  attr_accessor :target, :compiler_path
-  attr_accessor :cpp_flags, :include_dirs, :library_dirs, :libraries, :sources
-  attr_accessor :source_root_dir, :build_root_dir
-
-  def initialize(task_namespace)
-    @task_namespace = task_namespace
-    @compiler = CppCompiler.new
-
-    @target = nil
-    @compiler_path = nil
-    @cpp_flags = []
-    @include_dirs = []
-    @library_dirs = []
-    @libraries = []
-    @sources = FileList[]
-    @source_root_dir = nil
-    @build_root_dir = nil
-
-    generate_tasks
-  end
-
-  def build
-    @compiler.target = @target
-    @compiler.compiler_path = @compiler_path
-    @cpp_flags.each do |flag|
-      @compiler.add_cpp_flag(flag)
-    end
-    @include_dirs.each do |dir|
-      @compiler.add_include_dir(dir)
-    end
-    @library_dirs.each do |dir|
-      @compiler.add_library_dir(dir)
-    end
-    @libraries.each do |library|
-      @compiler.add_library(library)
-    end
-
-    define_target_file_task
-    define_object_file_task
-    define_dep_file_task
-
-    task :setup do
-      setup_build_directory
-    end
-
-    invoke_task(:setup)
-    invoke_task(@target)
-  end
-
-  def rebuild
-    clobber
-    invoke_task("#{@task_namespace.to_s}:build")
-  end
-
-  def clean
-    remove_file(obj_root)
-    remove_file(dep_root)
-  end
-
-  def clobber
-    clean
-    remove_file(build_root)
-  end
-
-  private
-
-  def generate_tasks
-    namespace @task_namespace do
-      desc "Build executable"
-      task :build do |t|
-        build
-      end
-      
-      desc "Rebuild executable"
-      task :rebuild do |t|
-        rebuild
-      end
-
-      desc "Remove any temporary products"
-      task :clean do |t|
-        clean
-      end
-      
-      desc "Remove any generated file"
-      task :clobber do |t|
-        clobber
-      end
-    end
-  end
-
-  def setup_build_directory
-    Dir.glob("#{src_root}/**/").each do |src_dir|
-      [obj_root, dep_root, bin_root].each do |root|
-        dir = change_root(src_dir, src_root, root)
-        FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
-      end
-    end
-  end
-
-  def get_dependent_objfiles
-    FileList[@sources.map{|src| obj_path(src)}]
-  end
-
-  def make_target(dependent_objfiles)
-    @compiler.make_target(dependent_objfiles, exe_path)
-  end
-
-  def make_object_file(objfile)
-    srcfile = src_path(objfile)
-    @compiler.make_object_file(srcfile, objfile)
-  end
-
-  def make_dependency_file(depfilename)
-    srcfile = src_path(depfilename)
-    depfile = dep_path(srcfile)
-    objfile = obj_path(srcfile)
-    @compiler.make_dependency_file(srcfile, objfile, depfile)
-  end
-
-  def collect_dependencies(objfile)
-    depfile = dep_path(objfile)
   
-    invoke_file_task(depfile)
-  
-    obj, deps = load_depfile(depfile)
-    objfile.include?(obj) ? deps : []
+  desc "Remove any generated file"
+  task :clobber do |t|
+    Rake::Task["#{SERVER_NAMESPACE}:clean"].invoke
+    rm_r BIN_DIR if File.exists?(BIN_DIR)
   end
 
-  def make_raspi_url()
+  desc "Deploy executables to raspberry pi"
+  task :deploy => :build do |t|
     user = ENV["RASPI_USER"]
     host = ENV["RASPI_HOST"]
-  
-    return "#{user}@#{host}"
+   
+    raspi_path = "#{user}@#{host}"
+    src_path = "#{BIN_DIR}/#{TARGET}"
+    dest_path = "#{raspi_path}:~/dev/#{PRODUCT}/"
+    sh "rsync #{src_path} #{dest_path}"
   end
-
-  def exe_path()
-    return "#{bin_root}/#{@target}"
-  end
-
-  def define_target_file_task
-    namespace @task_namespace do
-      file @target => [get_dependent_objfiles].flatten do |f|
-        make_target(f.prerequisites)
-      end
-    end
-  end
-
-  def define_object_file_task
-    namespace @task_namespace do
-      rule OBJ_EXT => [proc{|objfile| collect_dependencies(objfile)}] do |r|
-        make_object_file(r.name)
-      end
-    end
-  end
-
-  def define_dep_file_task
-    namespace @task_namespace do
-      rule DEP_EXT do |r|
-        make_dependency_file(r.name)
-      end
-    end
-  end
-
-  def invoke_task(task)
-    Rake::Task[task].invoke
-  end
-
-  def invoke_file_task(filename)
-    Rake::FileTask[filename].invoke
-  end
-
-  def load_depfile(depfile)
-    lines = []
-    File.open(depfile).each_line do |line|
-      lines << line.gsub(/\\\n$/, "")
-      next if line.end_with?("\\")
-    end
-  
-    obj, deps = lines.join(" ").split(':', 2)
-    deps = deps.split(' ').map{|s| s.strip}
-    return obj, deps
-  end
-
-  def src_path(file)
-    convert_path(file, :source)
-  end
-  
-  def obj_path(file)
-    convert_path(file, :object)
-  end
-
-  def dep_path(file)
-    convert_path(file, :depend)
-  end
-
-  def change_root(path, from, to)
-    path.gsub(Regexp.new("\\A" + from), to)
-  end
-  
-  def convert_path(file, to)
-    ext = File.extname(file)
-    root_dir =
-      case ext
-      when SRC_EXT then src_root 
-      when OBJ_EXT then obj_root
-      when DEP_EXT then dep_root
-      end
-    new_root, new_ext =
-      case to
-      when :source then [src_root, SRC_EXT]
-      when :object then [obj_root, OBJ_EXT]
-      when :depend then [dep_root, DEP_EXT]
-      end
-    change_root(file, root_dir, new_root).gsub(Regexp.new("\\#{ext}$"), new_ext)
-  end
-
-  def src_root
-    @source_root_dir
-  end
-
-  def build_root
-    @build_root_dir
-  end
-
-  def obj_root
-    @build_root_dir + "/objs"
-  end
-
-  def dep_root
-    @build_root_dir + "/deps"
-  end
-
-  def bin_root
-    @build_root_dir + "/bin"
-  end
-
-  def remove_file(filename)
-    rm_r filename if File.exists?(filename)
-  end
-end
-
-SRC_ROOT = "source"
-
-cpp_flags = ["-std=c++11"]
-include_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/include/"]
-library_dirs = ["#{ENV['HOME']}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/",
-                "#{ENV['HOME']}/raspi-dev/opt/userland/build/lib/"]
-libraries = ["raspicam", "mmal", "mmal_core", "mmal_util", "mmal_vc_client", "vcos", "vchiq_arm"]
-
-server_build_system = BuildSystem.new :server
-server_build_system.target = "rasp_sec_cam_server"
-server_build_system.compiler_path = "#{ENV['HOME']}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++"
-server_build_system.cpp_flags = cpp_flags.clone
-server_build_system.include_dirs = include_dirs.clone
-server_build_system.library_dirs = library_dirs.clone
-server_build_system.libraries = libraries.clone
-server_build_system.sources = FileList["#{SRC_ROOT}/**/*#{BuildSystem::SRC_EXT}"]
-server_build_system.source_root_dir = "source"
-server_build_system.build_root_dir = "./build"
-
-desc "Deploy executables to raspberry pi"
-task :deploy => :build do |t|
-  raspi_path = build_system.make_raspi_url
-  src_path = build_system.exe_path
-  dest_path = "#{raspi_path}:~/dev/#{PRODUCT}/"
-  sh "rsync #{src_path} #{dest_path}"
 end
