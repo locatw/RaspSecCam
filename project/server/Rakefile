@@ -2,19 +2,55 @@ require 'fileutils'
 
 PRODUCT = "RaspSecCam"
 
-SERVER_NAMESPACE = "server"
-namespace SERVER_NAMESPACE do
-  TARGET = "rasp-sec-cam-server"
-  BIN_DIR = "bin"
-  BUILD_DIR = "build"
+class BuildTask
+  attr_accessor :target, :bin_dir, :build_dir
+  attr_reader :namespace, :setup_task, :build_task, :rebuild_task, :clean_task, :clobber_task, :deploy_task
 
-  task :setup do |t|
-    FileUtils.mkdir_p(BUILD_DIR) unless Dir.exist?(BUILD_DIR) 
+  def initialize(task_namespace)
+    @namespace = task_namespace
+    @build_task = :build
+    @rebuild_task = :rebuild
+    @clean_task = :clean
+    @clobber_task = :clobber
+    @deploy_task = :deploy
+  end
+
+  def build_task_fullname
+    make_task_fullname("build")
+  end
+
+  def clean_task_fullname
+    make_task_fullname("clean")
+  end
+
+  def clobber_task_fullname
+    make_task_fullname("clobber")
+  end
+
+  def target_path
+    "#{@bin_dir}/#{@target}"
+  end
+
+  private
+
+  def make_task_fullname(task_name)
+    "#{@namespace}:#{task_name}"
+  end
+end
+
+server_task = BuildTask.new "server"
+server_task.target = "rasp-sec-cam-server"
+server_task.bin_dir = "bin"
+server_task.build_dir = "build"
+
+namespace server_task.namespace do
+  task server_task.setup_task do |t|
+    FileUtils.mkdir_p(server_task.build_dir) unless Dir.exist?(server_task.build_dir) 
   end
 
   desc "Build executable"
-  task :build => :setup do |t|
-    cd BUILD_DIR do
+  task server_task.build_task => server_task.setup_task do |t|
+    cd server_task.build_dir do
       sh "cmake -DCMAKE_INSTALL_PREFIX=.. .."
       sh "make"
       sh "make install"
@@ -22,29 +58,29 @@ namespace SERVER_NAMESPACE do
   end
   
   desc "Rebuild executable"
-  task :rebuild do |t|
-    Rake::Task["#{SERVER_NAMESPACE}:clobber"].invoke
-    Rake::Task["#{SERVER_NAMESPACE}:build"].invoke
+  task server_task.rebuild_task do |t|
+    Rake::Task[server_task.clobber_task_fullname].invoke
+    Rake::Task[server_task.build_task_fullname].invoke
   end
 
   desc "Remove any temporary products"
-  task :clean do |t|
-    rm_r BUILD_DIR if File.exists?(BUILD_DIR)
+  task server_task.clean_task do |t|
+    rm_r server_task.build_dir if File.exists?(server_task.build_dir)
   end
   
   desc "Remove any generated file"
-  task :clobber do |t|
-    Rake::Task["#{SERVER_NAMESPACE}:clean"].invoke
-    rm_r BIN_DIR if File.exists?(BIN_DIR)
+  task server_task.clobber_task do |t|
+    Rake::Task[server_task.clean_task_fullname].invoke
+    rm_r server_task.bin_dir if File.exists?(server_task.bin_dir)
   end
 
   desc "Deploy executables to raspberry pi"
-  task :deploy => :build do |t|
+  task server_task.deploy_task => server_task.build_task do |t|
     user = ENV["RASPI_USER"]
     host = ENV["RASPI_HOST"]
    
     raspi_path = "#{user}@#{host}"
-    src_path = "#{BIN_DIR}/#{TARGET}"
+    src_path = server_task.target_path
     dest_path = "#{raspi_path}:~/dev/#{PRODUCT}/"
     sh "rsync #{src_path} #{dest_path}"
   end
