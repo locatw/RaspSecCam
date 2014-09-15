@@ -22,7 +22,7 @@ class BuildTask
   end
 
   def build_task_fullname
-    make_task_fullname("build")
+    make_task_fullname(@build_task.to_s)
   end
 
   def build_test_task_fullname
@@ -30,11 +30,11 @@ class BuildTask
   end
 
   def clean_task_fullname
-    make_task_fullname("clean")
+    make_task_fullname(@clean_task.to_s)
   end
 
   def clobber_task_fullname
-    make_task_fullname("clobber")
+    make_task_fullname(@clobber_task.to_s)
   end
 
   def target_path
