@@ -10,6 +10,7 @@ SET(CMAKE_CXX_COMPILER
 	"$ENV{HOME}/raspi-dev/opt/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf-g++")
 
 INCLUDE_DIRECTORIES(
+	"../${INCLUDE_DIR}"
 	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/include")
 LINK_DIRECTORIES(
 	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/"

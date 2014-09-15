@@ -9,13 +9,14 @@ SET(TARGET rasp-sec-cam-server-test)
 SET(CMAKE_CXX_COMPILER "g++")
 
 INCLUDE_DIRECTORIES(
-	"../${SOURCE_DIR}/"
+	"../${INCLUDE_DIR}/"
 	"../../../thirdparty/")
 
 FILE(GLOB_RECURSE SOURCES "../${SOURCE_DIR}/*.cpp" "./*.cpp")
 LIST(APPEND SOURCES
 	"../../../thirdparty/gtest/gtest-all.cc"
 	"../../../thirdparty/gtest/gtest_main.cc")
+
 # remove a file contains main funciton.
 FOREACH(src ${SOURCES})
 	IF(src MATCHES ".?/${SOURCE_DIR}/main.cpp")

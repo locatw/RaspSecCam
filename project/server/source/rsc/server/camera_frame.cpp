@@ -1,4 +1,4 @@
-#include "camera_frame.hpp"
+#include "rsc/server/camera_frame.hpp"
 
 namespace rsc {
 namespace server {
