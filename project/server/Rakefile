@@ -6,7 +6,7 @@ class BuildTask
   attr_accessor :target, :bin_dir, :build_dir
   attr_reader :namespace, :clean_task, :clobber_task, :deploy_task
   attr_reader :setup_task, :build_task, :rebuild_task
-  attr_reader :setup_test_task, :build_test_task
+  attr_reader :setup_test_task, :build_test_task, :rebuild_test_task
 
   def initialize(task_namespace)
     @namespace = task_namespace
@@ -15,6 +15,7 @@ class BuildTask
     @rebuild_task = :rebuild
     @setup_test_task = :setup_test
     @build_test_task = :build_test
+    @rebuild_test_task = :rebuild_test
     @clean_task = :clean
     @clobber_task = :clobber
     @deploy_task = :deploy
@@ -22,6 +23,10 @@ class BuildTask
 
   def build_task_fullname
     make_task_fullname("build")
+  end
+
+  def build_test_task_fullname
+    make_task_fullname(@build_test_task.to_s)
   end
 
   def clean_task_fullname
@@ -84,6 +89,12 @@ namespace server_task.namespace do
       sh "make"
       sh "make install"
     end
+  end
+
+  desc "Rebuild unit test executable"
+  task server_task.rebuild_test_task do |t|
+    Rake::Task[server_task.clobber_task_fullname].invoke
+    Rake::Task[server_task.build_test_task_fullname].invoke
   end
 
   desc "Remove any temporary products"
