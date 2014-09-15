@@ -3,10 +3,10 @@ require 'fileutils'
 PRODUCT = "RaspSecCam"
 
 class BuildTask
-  attr_accessor :target, :bin_dir, :build_dir
+  attr_accessor :target, :test_target, :bin_dir, :build_dir
   attr_reader :namespace, :clean_task, :clobber_task, :deploy_task
   attr_reader :setup_task, :build_task, :rebuild_task
-  attr_reader :setup_test_task, :build_test_task, :rebuild_test_task
+  attr_reader :setup_test_task, :build_test_task, :rebuild_test_task, :run_test_task
 
   def initialize(task_namespace)
     @namespace = task_namespace
@@ -16,6 +16,7 @@ class BuildTask
     @setup_test_task = :setup_test
     @build_test_task = :build_test
     @rebuild_test_task = :rebuild_test
+    @run_test_task = :run_test
     @clean_task = :clean
     @clobber_task = :clobber
     @deploy_task = :deploy
@@ -54,6 +55,7 @@ BUILD_TEST_DIR = BUILD_ROOT + "/test"
 
 server_task = BuildTask.new "server"
 server_task.target = "rasp-sec-cam-server"
+server_task.test_target = "#{server_task.target}-test"
 server_task.bin_dir = "bin"
 
 namespace server_task.namespace do
@@ -95,6 +97,13 @@ namespace server_task.namespace do
   task server_task.rebuild_test_task do |t|
     Rake::Task[server_task.clobber_task_fullname].invoke
     Rake::Task[server_task.build_test_task_fullname].invoke
+  end
+
+  desc "Run unit test"
+  task server_task.run_test_task => server_task.build_test_task do |t|
+    cd server_task.bin_dir do
+      sh "./#{server_task.test_target}"
+    end
   end
 
   desc "Remove any temporary products"
