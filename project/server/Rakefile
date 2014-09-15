@@ -4,12 +4,17 @@ PRODUCT = "RaspSecCam"
 
 class BuildTask
   attr_accessor :target, :bin_dir, :build_dir
-  attr_reader :namespace, :setup_task, :build_task, :rebuild_task, :clean_task, :clobber_task, :deploy_task
+  attr_reader :namespace, :clean_task, :clobber_task, :deploy_task
+  attr_reader :setup_task, :build_task, :rebuild_task
+  attr_reader :setup_test_task, :build_test_task
 
   def initialize(task_namespace)
     @namespace = task_namespace
+    @setup_task = :setup
     @build_task = :build
     @rebuild_task = :rebuild
+    @setup_test_task = :setup_test
+    @build_test_task = :build_test
     @clean_task = :clean
     @clobber_task = :clobber
     @deploy_task = :deploy
@@ -38,20 +43,24 @@ class BuildTask
   end
 end
 
+BUILD_ROOT = "build"
+BUILD_SRC_DIR = BUILD_ROOT + "/source"
+BUILD_TEST_DIR = BUILD_ROOT + "/test"
+
 server_task = BuildTask.new "server"
 server_task.target = "rasp-sec-cam-server"
 server_task.bin_dir = "bin"
-server_task.build_dir = "build"
 
 namespace server_task.namespace do
   task server_task.setup_task do |t|
+    server_task.build_dir = BUILD_SRC_DIR
     FileUtils.mkdir_p(server_task.build_dir) unless Dir.exist?(server_task.build_dir) 
   end
 
   desc "Build executable"
   task server_task.build_task => server_task.setup_task do |t|
     cd server_task.build_dir do
-      sh "cmake -DCMAKE_INSTALL_PREFIX=.. .."
+      sh "cmake -DCMAKE_INSTALL_PREFIX=../.. ../.."
       sh "make"
       sh "make install"
     end
@@ -63,9 +72,23 @@ namespace server_task.namespace do
     Rake::Task[server_task.build_task_fullname].invoke
   end
 
+  task server_task.setup_test_task do |t|
+    server_task.build_dir = BUILD_TEST_DIR
+    FileUtils.mkdir_p(server_task.build_dir) unless Dir.exist?(server_task.build_dir) 
+  end
+
+  desc "Build unit test executable"
+  task server_task.build_test_task => server_task.setup_test_task do |t|
+    cd server_task.build_dir do
+      sh "cmake -DCMAKE_INSTALL_PREFIX=../.. -DBUILD_TYPE=test ../.."
+      sh "make"
+      sh "make install"
+    end
+  end
+
   desc "Remove any temporary products"
   task server_task.clean_task do |t|
-    rm_r server_task.build_dir if File.exists?(server_task.build_dir)
+    rm_r BUILD_ROOT if File.exists?(BUILD_ROOT)
   end
   
   desc "Remove any generated file"
