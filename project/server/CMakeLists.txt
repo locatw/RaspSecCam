@@ -8,6 +8,7 @@ PROJECT(RaspSecCam-Server CXX)
 SET(INCLUDE_DIR "include")
 SET(SOURCE_DIR "source")
 SET(TEST_DIR "test")
+SET(THIRDPARTY_DIR "../../thirdparty")
 
 #===============================================================================
 # build settings
