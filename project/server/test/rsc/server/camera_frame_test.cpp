@@ -35,3 +35,13 @@ TEST(camera_frame_test, AccessFrameData)
 	EXPECT_EQ(2, frame.data()[1]);
 	EXPECT_EQ(3, frame.data()[2]);
 }
+
+TEST(camera_frame_test, AccessConstFrameData)
+{
+	std::vector<unsigned char> frameData = {1, 2, 3};
+	const camera_frame frame(frameData);
+
+	EXPECT_EQ(1, frame.data()[0]);
+	EXPECT_EQ(2, frame.data()[1]);
+	EXPECT_EQ(3, frame.data()[2]);
+}

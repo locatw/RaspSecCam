@@ -19,7 +19,7 @@ namespace server {
 
 	const unsigned char* camera_frame::data() const
 	{
-		return frame_.data();
+		return static_cast<const unsigned char*>(const_cast<camera_frame*>(this)->data());
 	}
 }
 }
