@@ -10,6 +10,7 @@ SET(CMAKE_CXX_COMPILER "g++")
 
 INCLUDE_DIRECTORIES(
 	"../${INCLUDE_DIR}/"
+	"./stub/"
 	"../${THIRDPARTY_DIR}/")
 
 FILE(GLOB_RECURSE SOURCES "../${SOURCE_DIR}/*.cpp" "./*.cpp")
