@@ -11,12 +11,12 @@ SET(CMAKE_CXX_COMPILER "g++")
 INCLUDE_DIRECTORIES(
 	"../${INCLUDE_DIR}/"
 	"./stub/"
-	"../${THIRDPARTY_DIR}/")
+	"../${THIRDPARTY_DIR}/google/")
 
 FILE(GLOB_RECURSE SOURCES "../${SOURCE_DIR}/*.cpp" "./*.cpp")
 LIST(APPEND SOURCES
-	"../${THIRDPARTY_DIR}/gtest/gtest-all.cc"
-	"../${THIRDPARTY_DIR}/gtest/gtest_main.cc")
+	"../${THIRDPARTY_DIR}/google/gmock-gtest-all.cc"
+	"../${THIRDPARTY_DIR}/google/gmock_main.cc")
 
 # remove a file contains main funciton.
 FOREACH(src ${SOURCES})
