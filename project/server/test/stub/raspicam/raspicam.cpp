@@ -13,6 +13,11 @@ bool RaspiCam::open(bool start_capture)
 	return true;
 }
 
+bool RaspiCam::isOpened() const
+{
+	return true;
+}
+
 void RaspiCam::retrieve(unsigned char* data, RASPICAM_FORMAT type)
 {}
 

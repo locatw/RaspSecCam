@@ -14,6 +14,8 @@ public:
 
 	bool open() override;
 
+	bool is_opened() const override;
+
 	size_t get_frame_size() const override;
 
 	std::shared_ptr<camera_frame> retrieve() override;

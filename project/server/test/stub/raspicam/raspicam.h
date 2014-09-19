@@ -15,6 +15,8 @@ public:
 
 	virtual bool open(bool start_capture = true);
 
+	virtual bool isOpened() const;
+
 	virtual void retrieve(unsigned char* data, RASPICAM_FORMAT type = RASPICAM_FORMAT_IGNORE);
 
 	virtual size_t getImageTypeSize(RASPICAM_FORMAT type) const;

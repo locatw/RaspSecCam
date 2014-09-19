@@ -9,6 +9,11 @@ bool raspi_camera::open()
 	return camera_.open();
 }
 
+bool raspi_camera::is_opened() const
+{
+	return camera_.isOpened();
+}
+
 size_t raspi_camera::get_frame_size() const
 {
 	return camera_.getImageTypeSize(raspicam::RASPICAM_FORMAT_RGB);
