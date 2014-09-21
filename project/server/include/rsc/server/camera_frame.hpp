@@ -2,6 +2,7 @@
 #define INC_RSC_SERVER_CAMERA_FRAME_HPP
 
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 namespace rsc {
@@ -9,6 +10,9 @@ namespace server {
 
 class camera_frame
 {
+public:
+	typedef std::shared_ptr<camera_frame> ptr;
+
 public:
 	camera_frame() = default;
 

@@ -1,13 +1,12 @@
 #include <stdexcept>
 #include <vector>
 #include "rsc/server/camera.hpp"
-#include "rsc/server/camera_frame.hpp"
 #include "rsc/server/capture_worker.hpp"
 
 namespace rsc {
 namespace server {
 
-capture_worker::capture_worker(camera& camera, camera_frame_queue_ptr& frame_queue)
+capture_worker::capture_worker(camera& camera, concurrent_queue<camera_frame::ptr>::ptr& frame_queue)
 	: camera_(camera), frame_queue_(frame_queue), capture_thread_(), capture_thread_canceled_(false)
 {}
 

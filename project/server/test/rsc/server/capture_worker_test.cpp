@@ -33,7 +33,7 @@ TEST(capture_worker_test, CanStartAndStop)
 	EXPECT_CALL(cam, retrieve())
 		.WillRepeatedly(Return(std::shared_ptr<camera_frame>()));
 
-	auto frame_queue = std::make_shared<concurrent_queue<capture_worker::camera_frame_ptr>>();
+	auto frame_queue = std::make_shared<concurrent_queue<camera_frame::ptr>>();
 	capture_worker worker(cam, frame_queue);
 
 	worker.start();
@@ -52,7 +52,7 @@ TEST(capture_worker_test, CaptureFrame)
 		.Times(AtLeast(1))
 		.WillRepeatedly(Return(std::shared_ptr<camera_frame>()));
 
-	auto frame_queue = std::make_shared<concurrent_queue<capture_worker::camera_frame_ptr>>();
+	auto frame_queue = std::make_shared<concurrent_queue<camera_frame::ptr>>();
 	capture_worker worker(cam, frame_queue);
 
 	worker.start();

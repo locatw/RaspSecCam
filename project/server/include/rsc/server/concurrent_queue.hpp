@@ -2,6 +2,7 @@
 #define INC_RSC_SERVER_CONCURRENT_QUEUE_HPP
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <queue>
 
@@ -18,6 +19,9 @@ class concurrent_queue
 {
 private:
 	typedef std::queue<T, Container> queue_type;
+
+public:
+	typedef std::shared_ptr<concurrent_queue<T>> ptr;
 
 public:
 	typedef typename queue_type::value_type value_type;

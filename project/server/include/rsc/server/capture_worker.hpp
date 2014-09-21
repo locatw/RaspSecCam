@@ -4,23 +4,18 @@
 #include <atomic>
 #include <memory>
 #include <thread>
-#include "concurrent_queue.hpp"
+#include "rsc/server/camera_frame.hpp"
+#include "rsc/server/concurrent_queue.hpp"
 
 namespace rsc {
 namespace server {
 
 class camera;
-class camera_frame;
-class capture_worker;
 
 class capture_worker
 {
 public:
-	typedef std::shared_ptr<camera_frame> camera_frame_ptr;
-	typedef std::shared_ptr<concurrent_queue<camera_frame_ptr>> camera_frame_queue_ptr;
-
-public:
-	capture_worker(camera& camera, camera_frame_queue_ptr& frame_queue);
+	capture_worker(camera& camera, concurrent_queue<camera_frame::ptr>::ptr& frame_queue);
 
 	~capture_worker() = default;
 
@@ -33,7 +28,7 @@ private:
 
 private:
 	camera& camera_;
-	camera_frame_queue_ptr frame_queue_;
+	concurrent_queue<camera_frame::ptr>::ptr frame_queue_;
 	std::thread capture_thread_;
 	std::atomic<bool> capture_thread_canceled_;
 };
