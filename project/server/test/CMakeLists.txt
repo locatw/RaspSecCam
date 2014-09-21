@@ -11,7 +11,10 @@ SET(CMAKE_CXX_COMPILER "g++")
 INCLUDE_DIRECTORIES(
 	"../${INCLUDE_DIR}/"
 	"./stub/"
-	"../${THIRDPARTY_DIR}/google/")
+	"../${THIRDPARTY_DIR}/google/"
+	"/usr/local/include/")
+LINK_DIRECTORIES(
+	"/usr/local/lib/boost/")
 
 FILE(GLOB_RECURSE SOURCES "../${SOURCE_DIR}/*.cpp" "./*.cpp")
 LIST(APPEND SOURCES
@@ -28,6 +31,7 @@ ENDFOREACH()
 ADD_EXECUTABLE(${TARGET} ${SOURCES})
 
 TARGET_LINK_LIBRARIES(${TARGET}
+	boost_system
 	pthread)
 
 #===============================================================================

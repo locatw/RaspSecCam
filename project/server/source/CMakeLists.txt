@@ -13,6 +13,7 @@ INCLUDE_DIRECTORIES(
 	"../${INCLUDE_DIR}"
 	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/include")
 LINK_DIRECTORIES(
+	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/lib/boost/"
 	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/"
 	"$ENV{HOME}/raspi-dev/opt/userland/build/lib/")
 
@@ -21,6 +22,8 @@ FILE(GLOB_RECURSE SOURCES "*.cpp")
 ADD_EXECUTABLE(${TARGET} ${SOURCES})
 
 TARGET_LINK_LIBRARIES(${TARGET}
+	boost_system
+	pthread
 	raspicam
 	mmal
 	mmal_core
