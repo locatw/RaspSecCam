@@ -10,6 +10,8 @@ namespace server {
 class raspi_camera : public camera
 {
 public:
+	raspi_camera() = default;
+
 	virtual ~raspi_camera() = default;
 
 	bool open() override;
