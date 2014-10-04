@@ -7,6 +7,7 @@ namespace rsc {
 namespace server {
 
 class camera_frame;
+enum class camera_format;
 
 class camera
 {
@@ -23,9 +24,13 @@ public:
 
 	virtual std::shared_ptr<camera_frame> retrieve() = 0;
 
+	virtual camera_format get_format() const = 0;
+
 	virtual void set_width(size_t width) = 0;
 
 	virtual void set_height(size_t height) = 0;
+
+	virtual void set_format(camera_format format) = 0;
 
 private:
 	camera(const camera&) = default;

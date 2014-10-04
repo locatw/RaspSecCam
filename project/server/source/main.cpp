@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <thread>
 #include "rsc/server/capture_worker.hpp"
+#include "rsc/server/camera_format.hpp"
 #include "rsc/server/camera_frame.hpp"
 #include "rsc/server/concurrent_queue.hpp"
 #include "rsc/server/raspi_camera.hpp"
@@ -17,6 +18,7 @@ int main(int argc, char* argv[])
 		rsc::server::send_frame_worker send_frame_worker(frame_queue);
 		rsc::server::capture_worker capture_worker(camera, frame_queue);
 
+		camera.set_format(rsc::server::camera_format::BGR);
 		camera.set_width(480);
 		camera.set_height(320);
 
@@ -38,7 +40,7 @@ int main(int argc, char* argv[])
 		capture_worker.stop();
 		send_frame_worker.stop();
 	}
-	catch (const std::runtime_error& e) {
+	catch (const std::exception& e) {
 		std::cout << "error occurred : " << e.what() << std::endl;
 		std::cout << "finish." << std::endl;
 	}
