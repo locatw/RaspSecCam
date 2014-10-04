@@ -1,17 +1,34 @@
 #include "rsc/server/send_frame_worker.hpp"
-#include "rsc/server/net/frame_transfer_service.hpp"
+
+namespace asio = boost::asio;
 
 namespace rsc {
 namespace server {
 	
-send_frame_worker::send_frame_worker(
-	net::frame_transfer_service& frame_transfer_service,
-	concurrent_queue<camera_frame::ptr>::ptr& frame_queue)
-	: frame_transfer_service_(frame_transfer_service),
+send_frame_worker::send_frame_worker(concurrent_queue<camera_frame::ptr>::ptr& frame_queue)
+	: io_service_(),
+	  acceptor_(),
+	  socket_(),
 	  frame_queue_(frame_queue),
 	  send_frame_thread_(),
 	  send_frame_thread_canceled_(false)
 {}
+
+void send_frame_worker::accept(unsigned short port)
+{
+	io_service_ = std::unique_ptr<asio::io_service>(new asio::io_service());
+	acceptor_ = std::unique_ptr<asio::ip::tcp::acceptor>(
+					new asio::ip::tcp::acceptor(
+						*io_service_, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)));
+	socket_ = std::unique_ptr<asio::ip::tcp::socket>(new asio::ip::tcp::socket(*io_service_));
+
+	boost::system::error_code error;
+	acceptor_->accept(*socket_, error);
+
+	if (error) {
+		throw std::runtime_error("cannot accept");
+	}
+}
 
 void send_frame_worker::start()
 {
@@ -30,10 +47,24 @@ void send_frame_worker::stop()
 void send_frame_worker::send_frame_repeatedly()
 {
 	while (!send_frame_thread_canceled_) {
-		auto& frame = frame_queue_->front();
+		auto frame = frame_queue_->front();
 		frame_queue_->pop();
 
-		frame_transfer_service_.send(frame);
+		const size_t data_size = frame->size();
+
+		send_data(&data_size, sizeof(size_t));
+		send_data(frame->data(), data_size);
+	}
+}
+
+void send_frame_worker::send_data(const void* data, size_t data_byte_size)
+{
+	boost::system::error_code error;
+	asio::write(*socket_, asio::buffer(data, data_byte_size), error);
+
+	if (error) {
+		const std::string message = "cannot send data: " + error.message();
+		throw std::runtime_error(message);
 	}
 }
 

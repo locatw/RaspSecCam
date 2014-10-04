@@ -22,6 +22,10 @@ public:
 
 	std::shared_ptr<camera_frame> retrieve() override;
 
+	virtual void set_width(size_t width) override;
+
+	virtual void set_height(size_t height) override;
+
 private:
 	raspicam::RaspiCam camera_;
 

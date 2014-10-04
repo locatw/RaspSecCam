@@ -32,8 +32,10 @@ void capture_worker::capture_repeatedly()
 {
 	while (!capture_thread_canceled_) {
 		auto frame = camera_.retrieve();
-		
+
 		frame_queue_->push(frame);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(16));
 	}
 }
 
