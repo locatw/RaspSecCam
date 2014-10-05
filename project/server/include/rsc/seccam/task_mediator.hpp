@@ -1,5 +1,5 @@
-#ifndef INC_RSC_SERVER_TASK_MEDIATOR_HPP
-#define INC_RSC_SERVER_TASK_MEDIATOR_HPP
+#ifndef INC_RSC_SECCAM_TASK_MEDIATOR_HPP
+#define INC_RSC_SECCAM_TASK_MEDIATOR_HPP
 
 #include <condition_variable>
 #include <memory>

@@ -1,5 +1,5 @@
-#ifndef INC_RSC_SERVER_CAMERA_FRAME_HPP
-#define INC_RSC_SERVER_CAMERA_FRAME_HPP
+#ifndef INC_RSC_SECCAM_CAMERA_FRAME_HPP
+#define INC_RSC_SECCAM_CAMERA_FRAME_HPP
 
 #include <cstddef>
 #include <memory>

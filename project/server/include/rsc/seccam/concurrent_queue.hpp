@@ -1,5 +1,5 @@
-#ifndef INC_RSC_SERVER_CONCURRENT_QUEUE_HPP
-#define INC_RSC_SERVER_CONCURRENT_QUEUE_HPP
+#ifndef INC_RSC_SECCAM_CONCURRENT_QUEUE_HPP
+#define INC_RSC_SECCAM_CONCURRENT_QUEUE_HPP
 
 #include <condition_variable>
 #include <memory>

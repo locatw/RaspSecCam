@@ -1,5 +1,5 @@
-#ifndef RSC_SERVER_SEND_FRAME_WORKER_HPP
-#define RSC_SERVER_SEND_FRAME_WORKER_HPP
+#ifndef RSC_SECCAM_SEND_FRAME_WORKER_HPP
+#define RSC_SECCAM_SEND_FRAME_WORKER_HPP
 
 #include <atomic>
 #include <memory>
