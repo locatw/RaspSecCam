@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "rsc/seccam/concurrent_queue.hpp"
 
-using namespace rsc::server;
+using namespace rsc::seccam;
 
 TEST(concurrent_queue_test, ConstructDefault)
 {

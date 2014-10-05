@@ -11,6 +11,7 @@ SET(CMAKE_CXX_COMPILER "g++")
 INCLUDE_DIRECTORIES(
 	"../${INCLUDE_DIR}/"
 	"./stub/"
+	"./mock/"
 	"../${THIRDPARTY_DIR}/google/"
 	"/usr/local/include/")
 LINK_DIRECTORIES(

@@ -16,11 +16,13 @@ class task_mediator
 public:
 	task_mediator();
 
-	void request_capturing_permission();
+	virtual ~task_mediator() = default;
 
-	void put_camera_frame(const std::shared_ptr<camera_frame>& frame);
+	virtual void request_capturing_permission();
 
-	std::shared_ptr<camera_frame> get_camera_frame();
+	virtual void put_camera_frame(const std::shared_ptr<camera_frame>& frame);
+
+	virtual std::shared_ptr<camera_frame> get_camera_frame();
 
 private:
 	void pop_from_queue();

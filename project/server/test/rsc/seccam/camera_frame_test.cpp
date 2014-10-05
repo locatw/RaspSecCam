@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "rsc/seccam/camera_frame.hpp"
 
-using namespace rsc::server;
+using namespace rsc::seccam;
 
 TEST(camera_frame_test, ConstructDefault)
 {

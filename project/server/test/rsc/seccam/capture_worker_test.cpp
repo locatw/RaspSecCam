@@ -2,13 +2,15 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "rsc/seccam/camera.hpp"
+#include "rsc/seccam/camera_frame.hpp"
 #include "rsc/seccam/capture_worker.hpp"
-#include "rsc/seccam/concurrent_queue.hpp"
+#include "rsc/seccam/task_mediator_mock.hpp"
 
+using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::Ge;
 using ::testing::Return;
-using namespace rsc::server;
+using namespace rsc::seccam;
 
 class camera_mock : public camera
 {
@@ -22,6 +24,14 @@ public:
 	MOCK_CONST_METHOD0(get_frame_size, size_t());
 
 	MOCK_METHOD0(retrieve, std::shared_ptr<camera_frame>());
+
+	MOCK_CONST_METHOD0(get_format, camera_format());
+
+	MOCK_METHOD1(set_width, void(size_t));
+
+	MOCK_METHOD1(set_height, void(size_t));
+
+	MOCK_METHOD1(set_format, void(camera_format));
 };
 
 TEST(capture_worker_test, CanStartAndStop)
@@ -33,8 +43,9 @@ TEST(capture_worker_test, CanStartAndStop)
 	EXPECT_CALL(cam, retrieve())
 		.WillRepeatedly(Return(std::shared_ptr<camera_frame>()));
 
-	auto frame_queue = std::make_shared<concurrent_queue<camera_frame::ptr>>();
-	capture_worker worker(cam, frame_queue);
+	auto mediator_mock = std::make_shared<task_mediator_mock>();
+	auto mediator = std::static_pointer_cast<task_mediator>(mediator_mock);
+	capture_worker worker(cam, mediator);
 
 	worker.start();
 
@@ -52,12 +63,16 @@ TEST(capture_worker_test, CaptureFrame)
 		.Times(AtLeast(1))
 		.WillRepeatedly(Return(std::shared_ptr<camera_frame>()));
 
-	auto frame_queue = std::make_shared<concurrent_queue<camera_frame::ptr>>();
-	capture_worker worker(cam, frame_queue);
+	auto mediator_mock = std::make_shared<task_mediator_mock>();
+	EXPECT_CALL(*mediator_mock, request_capturing_permission())
+		.Times(AtLeast(1));
+	EXPECT_CALL(*mediator_mock, put_camera_frame(_))
+		.Times(AtLeast(1));
+
+	auto mediator = std::static_pointer_cast<task_mediator>(mediator_mock);
+	capture_worker worker(cam, mediator);
 
 	worker.start();
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	worker.stop();
-
-	EXPECT_GE(frame_queue->size(), 1);
 }
