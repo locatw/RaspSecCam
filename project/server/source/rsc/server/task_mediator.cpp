@@ -23,14 +23,16 @@ void task_mediator::put_camera_frame(const std::shared_ptr<camera_frame>& frame)
 std::shared_ptr<camera_frame> task_mediator::get_camera_frame()
 {
 	auto frame = frame_queue_.front();
-
-	std::unique_lock<std::mutex> lock(frame_queue_mutex_);
-	frame_queue_.pop();
-	lock.release();
-
+	pop_from_queue();
 	frame_not_exists_.notify_all();
 
 	return frame;
+}
+
+void task_mediator::pop_from_queue()
+{
+	std::lock_guard<std::mutex> lock(frame_queue_mutex_);
+	frame_queue_.pop();
 }
 
 } // namespace server

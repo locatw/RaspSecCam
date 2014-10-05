@@ -1,15 +1,16 @@
 #include "rsc/server/send_frame_worker.hpp"
+#include "rsc/server/task_mediator.hpp"
 
 namespace asio = boost::asio;
 
 namespace rsc {
 namespace server {
 	
-send_frame_worker::send_frame_worker(concurrent_queue<camera_frame::ptr>::ptr& frame_queue)
+send_frame_worker::send_frame_worker(std::shared_ptr<task_mediator>& task_mediator)
 	: io_service_(),
 	  acceptor_(),
 	  socket_(),
-	  frame_queue_(frame_queue),
+	  task_mediator_(task_mediator),
 	  send_frame_thread_(),
 	  send_frame_thread_canceled_(false)
 {}
@@ -47,9 +48,7 @@ void send_frame_worker::stop()
 void send_frame_worker::send_frame_repeatedly()
 {
 	while (!send_frame_thread_canceled_) {
-		auto frame = frame_queue_->front();
-		frame_queue_->pop();
-
+		auto frame = task_mediator_->get_camera_frame();
 		const size_t data_size = frame->size();
 
 		send_data(&data_size, sizeof(size_t));

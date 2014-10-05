@@ -23,6 +23,9 @@ public:
 	std::shared_ptr<camera_frame> get_camera_frame();
 
 private:
+	void pop_from_queue();
+
+private:
 	concurrent_queue<std::shared_ptr<camera_frame>> frame_queue_;
 	std::condition_variable frame_not_exists_;
 	std::mutex frame_queue_mutex_;

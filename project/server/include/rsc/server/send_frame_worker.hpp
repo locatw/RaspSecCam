@@ -6,7 +6,6 @@
 #include <thread>
 #include <boost/asio.hpp>
 #include "rsc/server/camera_frame.hpp"
-#include "rsc/server/concurrent_queue.hpp"
 
 namespace rsc {
 namespace server {
@@ -15,10 +14,12 @@ namespace net {
 class frame_transfer_service;
 } // namespace net
 
+class task_mediator;
+
 class send_frame_worker
 {
 public:
-	send_frame_worker(concurrent_queue<camera_frame::ptr>::ptr& frame_queue);
+	send_frame_worker(std::shared_ptr<task_mediator>& task_mediator);
 
 	~send_frame_worker() = default;
 
@@ -37,7 +38,7 @@ private:
 	std::unique_ptr<boost::asio::io_service> io_service_;
 	std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
 	std::unique_ptr<boost::asio::ip::tcp::socket> socket_;
-	concurrent_queue<camera_frame::ptr>::ptr frame_queue_;
+	std::shared_ptr<task_mediator> task_mediator_;
 	std::thread send_frame_thread_;
 	std::atomic<bool> send_frame_thread_canceled_;
 };

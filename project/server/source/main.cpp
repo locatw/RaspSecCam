@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <thread>
 #include "rsc/server/capture_worker.hpp"
@@ -8,15 +9,15 @@
 #include "rsc/server/concurrent_queue.hpp"
 #include "rsc/server/raspi_camera.hpp"
 #include "rsc/server/send_frame_worker.hpp"
+#include "rsc/server/task_mediator.hpp"
 
 int main(int argc, char* argv[])
 {
 	try {
 		rsc::server::raspi_camera camera;
-		rsc::server::concurrent_queue<rsc::server::camera_frame::ptr>::ptr frame_queue = 
-			std::make_shared<rsc::server::concurrent_queue<rsc::server::camera_frame::ptr>>();
-		rsc::server::send_frame_worker send_frame_worker(frame_queue);
-		rsc::server::capture_worker capture_worker(camera, frame_queue);
+		auto task_mediator = std::make_shared<rsc::server::task_mediator>();
+		rsc::server::send_frame_worker send_frame_worker(task_mediator);
+		rsc::server::capture_worker capture_worker(camera, task_mediator);
 
 		camera.set_format(rsc::server::camera_format::BGR);
 		camera.set_width(480);
