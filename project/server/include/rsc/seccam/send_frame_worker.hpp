@@ -5,10 +5,10 @@
 #include <memory>
 #include <thread>
 #include <boost/asio.hpp>
-#include "rsc/server/camera_frame.hpp"
+#include "rsc/seccam/camera_frame.hpp"
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 namespace net {
 class frame_transfer_service;
@@ -43,7 +43,7 @@ private:
 	std::atomic<bool> send_frame_thread_canceled_;
 };
 
-} // namespace server
+} // namespace seccam
 } // namespace rsc
 
 #endif

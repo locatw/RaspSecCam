@@ -4,10 +4,10 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
-#include "rsc/server/concurrent_queue.hpp"
+#include "rsc/seccam/concurrent_queue.hpp"
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 class camera_frame;
 
@@ -31,7 +31,7 @@ private:
 	std::mutex frame_queue_mutex_;
 };
 
-} // namespace server
+} // namespace seccam
 } // namespace rsc
 
 #endif

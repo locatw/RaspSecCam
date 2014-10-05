@@ -4,7 +4,7 @@
 #include <memory>
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 class camera_frame;
 enum class camera_format;

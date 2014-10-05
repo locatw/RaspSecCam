@@ -4,10 +4,10 @@
 #include <atomic>
 #include <memory>
 #include <thread>
-#include "rsc/server/camera_frame.hpp"
+#include "rsc/seccam/camera_frame.hpp"
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 class camera;
 class task_mediator;

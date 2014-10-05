@@ -1,7 +1,7 @@
-#include "rsc/server/task_mediator.hpp"
+#include "rsc/seccam/task_mediator.hpp"
 
 namespace rsc {
-namespace server {
+namespace seccam {
 	
 task_mediator::task_mediator()
 	: frame_queue_(), frame_not_exists_(), frame_queue_mutex_()
@@ -35,5 +35,5 @@ void task_mediator::pop_from_queue()
 	frame_queue_.pop();
 }
 
-} // namespace server
+} // namespace seccam
 } // namespace rsc

@@ -3,23 +3,23 @@
 #include <memory>
 #include <stdexcept>
 #include <thread>
-#include "rsc/server/capture_worker.hpp"
-#include "rsc/server/camera_format.hpp"
-#include "rsc/server/camera_frame.hpp"
-#include "rsc/server/concurrent_queue.hpp"
-#include "rsc/server/raspi_camera.hpp"
-#include "rsc/server/send_frame_worker.hpp"
-#include "rsc/server/task_mediator.hpp"
+#include "rsc/seccam/capture_worker.hpp"
+#include "rsc/seccam/camera_format.hpp"
+#include "rsc/seccam/camera_frame.hpp"
+#include "rsc/seccam/concurrent_queue.hpp"
+#include "rsc/seccam/raspi_camera.hpp"
+#include "rsc/seccam/send_frame_worker.hpp"
+#include "rsc/seccam/task_mediator.hpp"
 
 int main(int argc, char* argv[])
 {
 	try {
-		rsc::server::raspi_camera camera;
-		auto task_mediator = std::make_shared<rsc::server::task_mediator>();
-		rsc::server::send_frame_worker send_frame_worker(task_mediator);
-		rsc::server::capture_worker capture_worker(camera, task_mediator);
+		rsc::seccam::raspi_camera camera;
+		auto task_mediator = std::make_shared<rsc::seccam::task_mediator>();
+		rsc::seccam::send_frame_worker send_frame_worker(task_mediator);
+		rsc::seccam::capture_worker capture_worker(camera, task_mediator);
 
-		camera.set_format(rsc::server::camera_format::BGR);
+		camera.set_format(rsc::seccam::camera_format::BGR);
 		camera.set_width(480);
 		camera.set_height(320);
 

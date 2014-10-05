@@ -1,10 +1,10 @@
-#include "rsc/server/send_frame_worker.hpp"
-#include "rsc/server/task_mediator.hpp"
+#include "rsc/seccam/send_frame_worker.hpp"
+#include "rsc/seccam/task_mediator.hpp"
 
 namespace asio = boost::asio;
 
 namespace rsc {
-namespace server {
+namespace seccam {
 	
 send_frame_worker::send_frame_worker(std::shared_ptr<task_mediator>& task_mediator)
 	: io_service_(),
@@ -67,5 +67,5 @@ void send_frame_worker::send_data(const void* data, size_t data_byte_size)
 	}
 }
 
-} // namespace server
+} // namespace seccam
 } // namespace rsc

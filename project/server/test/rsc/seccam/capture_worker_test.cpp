@@ -1,9 +1,9 @@
 #include <thread>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "rsc/server/camera.hpp"
-#include "rsc/server/capture_worker.hpp"
-#include "rsc/server/concurrent_queue.hpp"
+#include "rsc/seccam/camera.hpp"
+#include "rsc/seccam/capture_worker.hpp"
+#include "rsc/seccam/concurrent_queue.hpp"
 
 using ::testing::AtLeast;
 using ::testing::Ge;

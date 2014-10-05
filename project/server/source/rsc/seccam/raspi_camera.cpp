@@ -1,15 +1,15 @@
 #include <memory>
 #include <stdexcept>
 #include <boost/format.hpp>
-#include "rsc/server/camera_format.hpp"
-#include "rsc/server/camera_frame.hpp"
-#include "rsc/server/raspi_camera.hpp"
+#include "rsc/seccam/camera_format.hpp"
+#include "rsc/seccam/camera_frame.hpp"
+#include "rsc/seccam/raspi_camera.hpp"
 
 namespace {
-	std::string to_string(rsc::server::camera_format format)
+	std::string to_string(rsc::seccam::camera_format format)
 	{
 		switch (format) {
-			case rsc::server::camera_format::BGR:
+			case rsc::seccam::camera_format::BGR:
 				return "BGR";
 			default:
 				const std::string message = (boost::format("unknown camera_format [%1%]") % static_cast<int>(format)).str();
@@ -30,7 +30,7 @@ namespace {
 }
 
 namespace rsc {
-namespace server { 
+namespace seccam { 
 
 bool raspi_camera::open()
 {

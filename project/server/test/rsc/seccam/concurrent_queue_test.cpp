@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "rsc/server/concurrent_queue.hpp"
+#include "rsc/seccam/concurrent_queue.hpp"
 
 using namespace rsc::server;
 

@@ -1,7 +1,7 @@
-#include "rsc/server/camera_frame.hpp"
+#include "rsc/seccam/camera_frame.hpp"
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 	camera_frame::camera_frame(const std::vector<unsigned char>& frame)
 		: frame_(frame.begin(), frame.end())

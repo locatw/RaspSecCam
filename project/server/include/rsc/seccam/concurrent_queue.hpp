@@ -7,7 +7,7 @@
 #include <queue>
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 /**
  * This class is a queue with concurrency.

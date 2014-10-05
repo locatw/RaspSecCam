@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "rsc/server/camera_frame.hpp"
+#include "rsc/seccam/camera_frame.hpp"
 
 using namespace rsc::server;
 

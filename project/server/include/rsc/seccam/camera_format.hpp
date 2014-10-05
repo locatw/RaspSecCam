@@ -2,13 +2,13 @@
 #define INC_RSC_SERVER_CAMERA_FORMAT_HPP
 
 namespace rsc {
-namespace server {
+namespace seccam {
 	
 enum class camera_format {
 	BGR
 };
 
-} // namespace server
+} // namespace seccam
 } // namespace rsc
 
 #endif

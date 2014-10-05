@@ -1,11 +1,11 @@
 #include <stdexcept>
 #include <vector>
-#include "rsc/server/camera.hpp"
-#include "rsc/server/capture_worker.hpp"
-#include "rsc/server/task_mediator.hpp"
+#include "rsc/seccam/camera.hpp"
+#include "rsc/seccam/capture_worker.hpp"
+#include "rsc/seccam/task_mediator.hpp"
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 capture_worker::capture_worker(camera& camera, std::shared_ptr<task_mediator>& task_mediator)
 	: camera_(camera), task_mediator_(task_mediator), capture_thread_(), capture_thread_canceled_(false)

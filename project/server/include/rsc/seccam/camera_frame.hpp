@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 class camera_frame
 {

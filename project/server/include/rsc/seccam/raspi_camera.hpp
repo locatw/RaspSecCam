@@ -5,7 +5,7 @@
 #include "camera.hpp"
 
 namespace rsc {
-namespace server {
+namespace seccam {
 
 class raspi_camera : public camera
 {
