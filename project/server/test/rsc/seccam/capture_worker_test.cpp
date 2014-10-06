@@ -44,6 +44,11 @@ TEST(capture_worker_test, CanStartAndStop)
 		.WillRepeatedly(Return(std::shared_ptr<camera_frame>()));
 
 	auto mediator_mock = std::make_shared<task_mediator_mock>();
+	EXPECT_CALL(*mediator_mock, request_capturing_permission())
+		.Times(AtLeast(1));
+	EXPECT_CALL(*mediator_mock, put_camera_frame(_))
+		.Times(AtLeast(1));
+
 	auto mediator = std::static_pointer_cast<task_mediator>(mediator_mock);
 	capture_worker worker(cam, mediator);
 
