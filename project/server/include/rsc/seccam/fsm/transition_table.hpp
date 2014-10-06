@@ -15,18 +15,22 @@ template<class state_id_t, class event_t>
 class transition_table
 {
 public:
+	typedef transition_table<state_id_t, event_t> this_type;
+	typedef transition_table_entry<state_id_t, event_t> entry_type;
+
+public:
 	transition_table() = default;
 
-	transition_table(const transition_table<state_id_t, event_t>& other) = default;
+	transition_table(const this_type& other) = default;
 
-	transition_table(std::initializer_list<transition_table_entry<state_id_t, event_t>> list)
+	transition_table(std::initializer_list<entry_type> list)
 		: entries_(list.begin(), list.end())
 	{}
 
 	boost::optional<state_id_t> lookup_next_state(const state_id_t& source_state_id, const event_t& event) const
 	{
 		auto found_entry = std::find_if(entries_.begin(), entries_.end(),
-				[&](const transition_table_entry<state_id_t, event_t>& entry) {
+				[&](const entry_type& entry) {
 					return (entry.source() == source_state_id) &&
 							(entry.event() == event);
 				});
@@ -45,7 +49,7 @@ public:
 	}
 
 private:
-	std::vector<transition_table_entry<state_id_t, event_t>> entries_;
+	std::vector<entry_type> entries_;
 };
 
 } // namespace fsm

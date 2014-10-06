@@ -11,11 +11,14 @@ template<class state_id_t, class event_t>
 class state_factory
 {
 public:
+	typedef state<state_id_t, event_t> state_type;
+
+public:
 	state_factory() = default;
 
 	virtual ~state_factory() = default;
 
-	virtual std::unique_ptr<state<state_id_t, event_t>> create(state_id_t id) = 0;
+	virtual std::unique_ptr<state_type> create(state_id_t id) = 0;
 };
 
 } // namespace fsm

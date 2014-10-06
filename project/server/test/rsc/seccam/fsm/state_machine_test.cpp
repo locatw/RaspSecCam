@@ -42,13 +42,13 @@ public:
 class test_state_factory : public state_factory<state_id, event>
 {
 public:
-	std::unique_ptr<state<state_id, event>> create(state_id id) override
+	std::unique_ptr<state_type> create(state_id id) override
 	{
 		switch (id) {
 			case state_id::state1:
-				return std::unique_ptr<state<state_id, event>>(new state1(id));
+				return std::unique_ptr<state_type>(new state1(id));
 			case state_id::state2:
-				return std::unique_ptr<state<state_id, event>>(new state2(id));
+				return std::unique_ptr<state_type>(new state2(id));
 			default:
 				throw std::runtime_error("unknown state id");
 		}
@@ -58,11 +58,11 @@ public:
 typedef transition_table_entry<state_id, event> transition_table_entry_type;
 typedef transition_table<state_id, event> transition_table_type;
 typedef state_machine<state_id, event> state_machine_type;
-
+typedef state_factory<state_id, event> state_factory_type;
 
 TEST(state_machine_test, CheckInitialState)
 {
-	auto factory = std::unique_ptr<state_factory<state_id, event>>(new test_state_factory());
+	auto factory = std::unique_ptr<state_factory_type>(new test_state_factory());
 	transition_table_type table;
 	state_machine_type machine(table, factory, state_id::state1);
 
@@ -71,11 +71,11 @@ TEST(state_machine_test, CheckInitialState)
 
 TEST(state_machine_test, TransitionSuccessfullyOccurred)
 {
-	auto factory = std::unique_ptr<state_factory<state_id, event>>(new test_state_factory());
-	transition_table<state_id, event> table = {
-		transition_table_entry<state_id, event>(state_id::state1, event::event1, state_id::state2)
+	auto factory = std::unique_ptr<state_factory_type>(new test_state_factory());
+	transition_table_type table = {
+		transition_table_entry_type(state_id::state1, event::event1, state_id::state2)
 	};
-	state_machine<state_id, event> machine(table, factory, state_id::state1);
+	state_machine_type machine(table, factory, state_id::state1);
 
 	machine.run();
 

@@ -18,9 +18,15 @@ template<class state_id_t, class event_t>
 class state_machine
 {
 public:
+	typedef state_machine<state_id_t, event_t> this_type;
+	typedef transition_table<state_id_t, event_t> transition_table_type;
+	typedef state<state_id_t, event_t> state_type;
+	typedef state_factory<state_id_t, event_t> state_factory_type;
+
+public:
 	state_machine(
-		transition_table<state_id_t, event_t>& transition_table,
-		std::unique_ptr<state_factory<state_id_t, event_t>>& state_factory,
+		transition_table_type& transition_table,
+		std::unique_ptr<state_factory_type>& state_factory,
 		state_id_t initial_state)
 		: transition_table_(transition_table),
 		  state_factory_(std::move(state_factory)),
@@ -58,21 +64,21 @@ public:
 	}
 
 private:
-	std::unique_ptr<state<state_id_t, event_t>> create_state(const state_id_t& state_id)
+	std::unique_ptr<state_type> create_state(const state_id_t& state_id)
 	{
 		using std::placeholders::_1;
 
 		auto state = state_factory_->create(state_id);
-		state->event_occurred.connect(std::bind(&state_machine<state_id_t, event_t>::on_event_occurred, this, _1)); 
+		state->event_occurred.connect(std::bind(&this_type::on_event_occurred, this, _1)); 
 
 		return state;
 	}
 
 private:
-	transition_table<state_id_t, event_t> transition_table_;
-	std::unique_ptr<state_factory<state_id_t, event_t>> state_factory_;
+	transition_table_type transition_table_;
+	std::unique_ptr<state_factory_type> state_factory_;
 	state_id_t initial_state_;
-	std::unique_ptr<state<state_id_t, event_t>> current_state_;
+	std::unique_ptr<state_type> current_state_;
 };
 	
 } // namespace fsm
