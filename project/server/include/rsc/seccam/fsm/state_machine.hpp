@@ -32,12 +32,11 @@ public:
 		  state_factory_(std::move(state_factory)),
 		  initial_state_(initial_state),
 		  current_state_()
-	{
-		current_state_ = create_state(initial_state_);
-	}
+	{}
 
 	void run()
 	{
+		current_state_ = create_state(initial_state_);
 		current_state_->on_entry();
 	}
 
