@@ -91,6 +91,7 @@ typedef transition_table<state_id, event> transition_table_type;
 typedef state_machine<state_id, event> state_machine_type;
 typedef state_factory<state_id, event> state_factory_type;
 
+using ::testing::InSequence;
 using ::testing::Return;
 
 TEST(state_machine_test, CheckInitialState)
@@ -136,6 +137,25 @@ TEST(state_machine_test, EachStateCreatedOnceWhenTransitState1ToState2)
 		.WillOnce(Return(new state1()));
 	EXPECT_CALL(*factory_mock, create_mock(state_id::state2))
 		.Times(1)
+		.WillOnce(Return(new state2()));
+
+	auto factory = std::unique_ptr<state_factory_type>(static_cast<state_factory_type*>(factory_mock.release()));
+	transition_table_type table = {
+		transition_table_entry_type(state_id::state1, event::event1, state_id::state2)
+	};
+	state_machine_type machine(table, factory, state_id::state1);
+
+	machine.run();
+}
+
+TEST(state_machine_test, EachStateCreatedInOrderWhenTransitState1ToState2)
+{
+	InSequence seq;
+
+	auto factory_mock = std::unique_ptr<state_factory_mock>(new state_factory_mock());
+	EXPECT_CALL(*factory_mock, create_mock(state_id::state1))
+		.WillOnce(Return(new state1()));
+	EXPECT_CALL(*factory_mock, create_mock(state_id::state2))
 		.WillOnce(Return(new state2()));
 
 	auto factory = std::unique_ptr<state_factory_type>(static_cast<state_factory_type*>(factory_mock.release()));
