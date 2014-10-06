@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <stack>
 #include <stdexcept>
 #include <boost/optional.hpp>
 #include "rsc/seccam/fsm/state.hpp"
@@ -31,38 +32,61 @@ public:
 		: transition_table_(transition_table),
 		  state_factory_(std::move(state_factory)),
 		  initial_state_(initial_state),
-		  current_state_()
+		  state_stack_(),
+		  transition_occurred_(false)
 	{}
 
 	void run()
 	{
-		current_state_ = create_state(initial_state_);
-		current_state_->on_entry();
+		initialize_state_stack();
+
+		auto initial_state = create_state(initial_state_);
+		state_stack_.push(std::shared_ptr<state_type>(std::move(initial_state)));
+
+		do {
+			transition_occurred_ = false;
+
+			auto current_state = get_current_state();
+			current_state->on_entry();
+		} while (transition_occurred_);
 	}
 
 	state_id_t current_state_id() const
 	{
-		if (!current_state_) {
-			throw std::logic_error("current state is empty");
-		}
-
-		return current_state_->id();
+		return get_current_state()->id();
 	}
 
 	void on_event_occurred(const event_t& event)
 	{
-		if (!current_state_) {
-			return;
-		}
-
-		boost::optional<state_id_t> next_state_id = transition_table_.lookup_next_state(current_state_->id(), event);
+		auto current_state = get_current_state();
+		boost::optional<state_id_t> next_state_id = transition_table_.lookup_next_state(current_state->id(), event);
 
 		if (next_state_id) {
-			current_state_ = create_state(*next_state_id);
+			state_stack_.pop();
+			current_state->on_exit();
+
+			auto next_state = create_state(*next_state_id);
+			state_stack_.push(std::shared_ptr<state_type>(std::move(next_state)));
+
+			transition_occurred_ = true;
 		}
 	}
 
 private:
+	std::shared_ptr<state_type> get_current_state()
+	{
+		return std::const_pointer_cast<state_type>(static_cast<const state_machine*>(this)->get_current_state());
+	}
+
+	std::shared_ptr<const state_type> get_current_state() const
+	{
+		if (state_stack_.empty()) {
+			throw std::logic_error("current state is empty");
+		}
+
+		return std::const_pointer_cast<const state_type>(state_stack_.top());
+	}
+
 	std::unique_ptr<state_type> create_state(const state_id_t& state_id)
 	{
 		using std::placeholders::_1;
@@ -73,11 +97,19 @@ private:
 		return state;
 	}
 
+	void initialize_state_stack()
+	{
+		std::stack<std::shared_ptr<state_type>> new_stack;
+
+		state_stack_.swap(new_stack);
+	}
+
 private:
 	transition_table_type transition_table_;
 	std::unique_ptr<state_factory_type> state_factory_;
 	state_id_t initial_state_;
-	std::unique_ptr<state_type> current_state_;
+	std::stack<std::shared_ptr<state_type>> state_stack_;
+	bool transition_occurred_;
 };
 	
 } // namespace fsm
