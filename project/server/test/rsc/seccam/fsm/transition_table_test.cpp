@@ -32,7 +32,7 @@ TEST(transition_table_test, ConstructTwoEntryTable)
 {
 	transition_table_type table = {
 		transition_table_entry_type(state_id::state1, event::event1, state_id::state1),
-		transition_table_entry_type(state_id::state1, event::event1, state_id::state2)
+		transition_table_entry_type(state_id::state1, event::event2, state_id::state2)
 	};
 
 	EXPECT_EQ(2, table.size());
