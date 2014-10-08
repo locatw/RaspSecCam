@@ -58,3 +58,12 @@ TEST(transition_table_test, LookupNextStateAndNotFound)
 	EXPECT_FALSE(table.lookup_next_state(state_id::state1, event::event2));
 	EXPECT_FALSE(table.lookup_next_state(state_id::state2, event::event1));
 }
+
+TEST(transition_table_test, LookupNextStateForAnonymousTranstion)
+{
+	transition_table_type table = {
+		transition_table_entry_type(state_id::state1, boost::none, state_id::state2)
+	};
+
+	EXPECT_EQ(state_id::state2, *table.lookup_next_state(state_id::state1, boost::none));
+}

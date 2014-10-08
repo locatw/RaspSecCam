@@ -230,3 +230,28 @@ TEST(state_machine_test, OnEntryAndOnExitMethodCalledWhenTransitionOccurred)
 
 	machine.run();
 }
+
+TEST(state_machine_test, AnonymousTransitionOccurred)
+{
+	auto state1_mock_obj = std::unique_ptr<NiceMock<state1_mock>>(new NiceMock<state1_mock>());
+	ON_CALL(*state1_mock_obj, on_entry())
+		.WillByDefault(Return());
+
+	auto state2_mock_obj = std::unique_ptr<NiceMock<state2_mock>>(new NiceMock<state2_mock>());
+
+	auto factory_mock = std::unique_ptr<NiceMock<state_factory_mock>>(new NiceMock<state_factory_mock>());
+	ON_CALL(*factory_mock, create_mock(state_id::state1))
+		.WillByDefault(Return(state1_mock_obj.release()));
+	ON_CALL(*factory_mock, create_mock(state_id::state2))
+		.WillByDefault(Return(state2_mock_obj.release()));
+
+	auto factory = std::unique_ptr<state_factory_type>(static_cast<state_factory_type*>(factory_mock.release()));
+	transition_table_type table = {
+		transition_table_entry_type(state_id::state1, boost::none, state_id::state2)
+	};
+	state_machine_type machine(table, factory, state_id::state1);
+
+	machine.run();
+
+	EXPECT_EQ(state_id::state2, machine.current_state_id());
+}

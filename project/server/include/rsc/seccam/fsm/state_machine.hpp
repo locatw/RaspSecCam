@@ -33,7 +33,8 @@ public:
 		  state_factory_(std::move(state_factory)),
 		  initial_state_(initial_state),
 		  state_stack_(),
-		  transition_occurred_(false)
+		  transition_occurred_(false),
+		  event_occurred_(false)
 	{}
 
 	void run()
@@ -45,9 +46,18 @@ public:
 
 		do {
 			transition_occurred_ = false;
+			event_occurred_ = false;
 
 			auto current_state = get_current_state();
 			current_state->on_entry();
+
+			if (!event_occurred_) {
+				boost::optional<state_id_t> next_state_id = transition_table_.lookup_next_state(current_state->id(), boost::none);
+
+				if (next_state_id) {
+					transit(*next_state_id);
+				}
+			}
 		} while (transition_occurred_);
 	}
 
@@ -58,21 +68,28 @@ public:
 
 	void on_event_occurred(const event_t& event)
 	{
+		event_occurred_ = true;
+
 		auto current_state = get_current_state();
 		boost::optional<state_id_t> next_state_id = transition_table_.lookup_next_state(current_state->id(), event);
 
 		if (next_state_id) {
-			state_stack_.pop();
-			current_state->on_exit();
-
-			auto next_state = create_state(*next_state_id);
-			state_stack_.push(std::shared_ptr<state_type>(std::move(next_state)));
-
-			transition_occurred_ = true;
+			transit(*next_state_id);
 		}
 	}
 
 private:
+	void transit(const state_id_t& next_state_id)
+	{
+		get_current_state()->on_exit();
+		state_stack_.pop();
+
+		auto next_state = create_state(next_state_id);
+		state_stack_.push(std::shared_ptr<state_type>(std::move(next_state)));
+
+		transition_occurred_ = true;
+	}
+
 	std::shared_ptr<state_type> get_current_state()
 	{
 		return std::const_pointer_cast<state_type>(static_cast<const state_machine*>(this)->get_current_state());
@@ -110,6 +127,7 @@ private:
 	state_id_t initial_state_;
 	std::stack<std::shared_ptr<state_type>> state_stack_;
 	bool transition_occurred_;
+	bool event_occurred_;
 };
 	
 } // namespace fsm

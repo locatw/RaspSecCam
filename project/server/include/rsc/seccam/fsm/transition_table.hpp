@@ -27,7 +27,7 @@ public:
 		: entries_(list.begin(), list.end())
 	{}
 
-	boost::optional<state_id_t> lookup_next_state(const state_id_t& source_state_id, const event_t& event) const
+	boost::optional<state_id_t> lookup_next_state(const state_id_t& source_state_id, const boost::optional<event_t>& event) const
 	{
 		auto found_entry = std::find_if(entries_.begin(), entries_.end(),
 				[&](const entry_type& entry) {

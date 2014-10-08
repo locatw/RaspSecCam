@@ -1,6 +1,8 @@
 #ifndef INC_RSC_SECCAM_FSM_TRANSITION_TABLE_ENTRY_HPP
 #define INC_RSC_SECCAM_FSM_TRANSITION_TABLE_ENTRY_HPP
 
+#include <boost/optional.hpp>
+
 namespace rsc {
 namespace seccam {
 namespace fsm {
@@ -9,7 +11,15 @@ template<class state_id_t, class event_t>
 class transition_table_entry
 {
 public:
-	transition_table_entry(state_id_t source_state, event_t event, state_id_t target_state)
+	/**
+	 * constructor.
+	 * when event is boost::none, it indicates anonymous transition.
+	 *
+	 * @param[in] source_state transition source state
+	 * @param[in] event trigger event. if boost::none is specified, transition occurred when no event occurred.
+	 * @param[in] target_state transition target state
+	 */
+	transition_table_entry(state_id_t source_state, const boost::optional<event_t>& event, state_id_t target_state)
 		: source_(source_state), event_(event), target_(target_state)
 	{}
 
@@ -18,7 +28,7 @@ public:
 		return source_;
 	}
 
-	event_t event() const
+	boost::optional<event_t> event() const
 	{
 		return event_;
 	}
@@ -30,7 +40,7 @@ public:
 
 private:
 	state_id_t source_;
-	event_t event_;
+	boost::optional<event_t> event_;
 	state_id_t target_;
 };
 
