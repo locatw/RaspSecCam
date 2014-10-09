@@ -31,7 +31,7 @@ public:
 		state_id_t initial_state)
 		: transition_table_(transition_table),
 		  state_factory_(std::move(state_factory)),
-		  initial_state_(initial_state),
+		  initial_state_id_(initial_state),
 		  state_stack_(),
 		  transition_occurred_(false),
 		  event_occurred_(false)
@@ -41,9 +41,12 @@ public:
 	{
 		initialize_state_stack();
 
-		auto initial_state = create_state(initial_state_);
-		state_stack_.push(std::shared_ptr<state_type>(std::move(initial_state)));
+		// transit to initial state.
+		// no state exists, so pass a null_state as current_state.
+		auto null_state = std::shared_ptr<state_type>();
+		transit(null_state, initial_state_id_);
 
+		// transit repeatedly until no transition occurred.
 		do {
 			transition_occurred_ = false;
 			event_occurred_ = false;
@@ -51,12 +54,9 @@ public:
 			auto current_state = get_current_state();
 			current_state->on_entry();
 
+			// if no event occurred, check anonymous transition.
 			if (!event_occurred_) {
-				boost::optional<state_id_t> next_state_id = transition_table_.lookup_next_state(current_state->id(), boost::none);
-
-				if (next_state_id) {
-					transit(*next_state_id);
-				}
+				transit_if_target_state_exists(current_state, boost::none);
 			}
 		} while (transition_occurred_);
 	}
@@ -71,18 +71,24 @@ public:
 		event_occurred_ = true;
 
 		auto current_state = get_current_state();
-		boost::optional<state_id_t> next_state_id = transition_table_.lookup_next_state(current_state->id(), event);
-
-		if (next_state_id) {
-			transit(*next_state_id);
-		}
+		transit_if_target_state_exists(current_state, event);
 	}
 
 private:
-	void transit(const state_id_t& next_state_id)
+	void transit_if_target_state_exists(std::shared_ptr<state_type>& current_state, const boost::optional<event_t>& occurred_event)
 	{
-		get_current_state()->on_exit();
-		state_stack_.pop();
+		boost::optional<state_id_t> next_state_id = transition_table_.lookup_next_state(current_state->id(), occurred_event);
+		if (next_state_id) {
+			transit(current_state, *next_state_id);
+		}
+	}
+
+	void transit(std::shared_ptr<state_type>& current_state, const state_id_t& next_state_id)
+	{
+		if (current_state) {
+			current_state->on_exit();
+			state_stack_.pop();
+		}
 
 		auto next_state = create_state(next_state_id);
 		state_stack_.push(std::shared_ptr<state_type>(std::move(next_state)));
@@ -98,7 +104,7 @@ private:
 	std::shared_ptr<const state_type> get_current_state() const
 	{
 		if (state_stack_.empty()) {
-			throw std::logic_error("current state is empty");
+			throw std::logic_error("no current state exists");
 		}
 
 		return std::const_pointer_cast<const state_type>(state_stack_.top());
@@ -124,7 +130,8 @@ private:
 private:
 	transition_table_type transition_table_;
 	std::unique_ptr<state_factory_type> state_factory_;
-	state_id_t initial_state_;
+	state_id_t initial_state_id_;
+	// stack a current state to top.
 	std::stack<std::shared_ptr<state_type>> state_stack_;
 	bool transition_occurred_;
 	bool event_occurred_;
