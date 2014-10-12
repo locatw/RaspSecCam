@@ -11,35 +11,14 @@
 #include "rsc/seccam/send_frame_worker.hpp"
 #include "rsc/seccam/task_mediator.hpp"
 
+#include "rsc/seccam/security_camera.hpp"
+
 int main(int argc, char* argv[])
 {
 	try {
-		rsc::seccam::raspi_camera camera;
-		auto task_mediator = std::make_shared<rsc::seccam::task_mediator>();
-		rsc::seccam::send_frame_worker send_frame_worker(task_mediator);
-		rsc::seccam::capture_worker capture_worker(camera, task_mediator);
+		rsc::seccam::security_camera sec_cam;
 
-		camera.set_format(rsc::seccam::camera_format::BGR);
-		camera.set_width(480);
-		camera.set_height(320);
-
-		if (!camera.open()) {
-			throw std::runtime_error("cannot open camera");
-		}
-
-		std::this_thread::sleep_for(std::chrono::seconds(3));
-
-		send_frame_worker.accept(31400);
-
-		capture_worker.start();
-		send_frame_worker.start();
-
-		while (true) {
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
-
-		capture_worker.stop();
-		send_frame_worker.stop();
+		sec_cam.run();
 	}
 	catch (const std::exception& e) {
 		std::cout << "error occurred : " << e.what() << std::endl;

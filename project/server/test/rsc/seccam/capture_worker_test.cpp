@@ -1,3 +1,4 @@
+#include <memory>
 #include <thread>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -36,11 +37,11 @@ public:
 
 TEST(capture_worker_test, CanStartAndStop)
 {
-	camera_mock cam;
-	EXPECT_CALL(cam, is_opened())
+	auto cam_mock = std::make_shared<camera_mock>();
+	EXPECT_CALL(*cam_mock, is_opened())
 		.Times(1)
 		.WillOnce(Return(true));
-	EXPECT_CALL(cam, retrieve())
+	EXPECT_CALL(*cam_mock, retrieve())
 		.WillRepeatedly(Return(std::shared_ptr<camera_frame>()));
 
 	auto mediator_mock = std::make_shared<task_mediator_mock>();
@@ -50,6 +51,7 @@ TEST(capture_worker_test, CanStartAndStop)
 		.Times(AtLeast(1));
 
 	auto mediator = std::static_pointer_cast<task_mediator>(mediator_mock);
+	auto cam = std::static_pointer_cast<camera>(cam_mock);
 	capture_worker worker(cam, mediator);
 
 	worker.start();
@@ -61,10 +63,10 @@ TEST(capture_worker_test, CanStartAndStop)
 
 TEST(capture_worker_test, CaptureFrame)
 {
-	camera_mock cam;
-	EXPECT_CALL(cam, is_opened())
+	auto cam_mock = std::make_shared<camera_mock>();
+	EXPECT_CALL(*cam_mock, is_opened())
 		.WillRepeatedly(Return(true));
-	EXPECT_CALL(cam, retrieve())
+	EXPECT_CALL(*cam_mock, retrieve())
 		.Times(AtLeast(1))
 		.WillRepeatedly(Return(std::shared_ptr<camera_frame>()));
 
@@ -75,6 +77,7 @@ TEST(capture_worker_test, CaptureFrame)
 		.Times(AtLeast(1));
 
 	auto mediator = std::static_pointer_cast<task_mediator>(mediator_mock);
+	auto cam = std::static_pointer_cast<camera>(cam_mock);
 	capture_worker worker(cam, mediator);
 
 	worker.start();

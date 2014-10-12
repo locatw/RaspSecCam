@@ -15,7 +15,7 @@ class task_mediator;
 class capture_worker
 {
 public:
-	capture_worker(camera& camera, std::shared_ptr<task_mediator>& task_mediator);
+	capture_worker(std::shared_ptr<camera>& camera, std::shared_ptr<task_mediator>& task_mediator);
 
 	~capture_worker() = default;
 
@@ -27,7 +27,7 @@ private:
 	void capture_repeatedly();
 
 private:
-	camera& camera_;
+	std::shared_ptr<camera> camera_;
 	std::shared_ptr<task_mediator> task_mediator_;
 	std::thread capture_thread_;
 	std::atomic<bool> capture_thread_canceled_;

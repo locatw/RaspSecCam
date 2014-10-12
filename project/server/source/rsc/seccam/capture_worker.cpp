@@ -7,13 +7,13 @@
 namespace rsc {
 namespace seccam {
 
-capture_worker::capture_worker(camera& camera, std::shared_ptr<task_mediator>& task_mediator)
+capture_worker::capture_worker(std::shared_ptr<camera>& camera, std::shared_ptr<task_mediator>& task_mediator)
 	: camera_(camera), task_mediator_(task_mediator), capture_thread_(), capture_thread_canceled_(false)
 {}
 
 void capture_worker::start()
 {
-	if (!camera_.is_opened()) {
+	if (!camera_->is_opened()) {
 		throw std::runtime_error("camera is not opened.");
 	}
 
@@ -34,7 +34,7 @@ void capture_worker::capture_repeatedly()
 	while (!capture_thread_canceled_) {
 		task_mediator_->request_capturing_permission();
 
-		auto frame = camera_.retrieve();
+		auto frame = camera_->retrieve();
 
 		task_mediator_->put_camera_frame(frame);
 
