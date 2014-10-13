@@ -9,17 +9,17 @@
 namespace rsc {
 namespace seccam {
 
-class send_frame_worker;
+class connector;
 	
 class waiting_for_connection_state : public fsm::state<app_state_id, app_event>
 {
 public:
-	waiting_for_connection_state(std::shared_ptr<send_frame_worker>& send_frame_worker);
+	waiting_for_connection_state(std::shared_ptr<connector>& connector);
 
 	void on_entry() override;
 
 private:
-	std::shared_ptr<send_frame_worker> send_frame_worker_;
+	std::shared_ptr<connector> connector_;
 };
 
 } // namespace seccam

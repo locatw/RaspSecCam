@@ -10,6 +10,7 @@ namespace rsc {
 namespace seccam {
 
 class camera;
+class connector;
 
 class security_camera
 {
@@ -24,6 +25,7 @@ private:
 private:
 	std::unique_ptr<state_machine_type> state_machine_;
 	std::shared_ptr<camera> camera_;
+	std::shared_ptr<connector> connector_;
 };
 
 } // namespace seccam

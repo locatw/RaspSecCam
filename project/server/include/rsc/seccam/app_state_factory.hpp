@@ -10,6 +10,7 @@ namespace seccam {
 
 class camera;
 class capture_worker;
+class connector;
 class send_frame_worker;
 	
 class app_state_factory : public fsm::state_factory<app_state_id, app_event>
@@ -17,6 +18,7 @@ class app_state_factory : public fsm::state_factory<app_state_id, app_event>
 public:
 	app_state_factory(
 		std::shared_ptr<camera>& camera,
+		std::shared_ptr<connector>& connector,
 		std::shared_ptr<capture_worker>& capture_worker,
 		std::shared_ptr<send_frame_worker>& send_frame_worker);
 
@@ -24,6 +26,7 @@ public:
 
 private:
 	std::shared_ptr<camera> camera_;
+	std::shared_ptr<connector> connector_;
 	std::shared_ptr<capture_worker>& capture_worker_;
 	std::shared_ptr<send_frame_worker>& send_frame_worker_;
 };
