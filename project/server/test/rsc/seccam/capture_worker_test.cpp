@@ -26,6 +26,10 @@ public:
 
 	MOCK_METHOD0(retrieve, std::shared_ptr<camera_frame>());
 
+	MOCK_CONST_METHOD0(get_width, size_t());
+
+	MOCK_CONST_METHOD0(get_height, size_t());
+
 	MOCK_CONST_METHOD0(get_format, camera_format());
 
 	MOCK_METHOD1(set_width, void(size_t));

@@ -23,6 +23,10 @@ public:
 
 	virtual size_t getImageTypeSize(RASPICAM_FORMAT type) const;
 
+	virtual unsigned int getWidth() const;
+
+	virtual unsigned int getHeight() const;
+
 	virtual RASPICAM_FORMAT getFormat() const;
 
 	virtual void setWidth(unsigned int width);

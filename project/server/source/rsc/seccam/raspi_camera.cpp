@@ -59,6 +59,16 @@ std::shared_ptr<camera_frame> raspi_camera::retrieve()
 	return std::make_shared<camera_frame>(buffer);
 }
 
+size_t raspi_camera::get_width() const
+{
+	return camera_.getWidth();
+}
+
+size_t raspi_camera::get_height() const
+{
+	return camera_.getHeight();
+}
+
 camera_format raspi_camera::get_format() const
 {
 	raspicam::RASPICAM_FORMAT raspi_format = camera_.getFormat();

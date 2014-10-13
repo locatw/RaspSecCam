@@ -22,6 +22,10 @@ public:
 
 	std::shared_ptr<camera_frame> retrieve() override;
 
+	size_t get_width() const override;
+
+	size_t get_height() const override;
+
 	camera_format get_format() const override;
 
 	virtual void set_width(size_t width) override;

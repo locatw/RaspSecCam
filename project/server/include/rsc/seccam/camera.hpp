@@ -24,6 +24,10 @@ public:
 
 	virtual std::shared_ptr<camera_frame> retrieve() = 0;
 
+	virtual size_t get_width() const = 0;
+
+	virtual size_t get_height() const = 0;
+
 	virtual camera_format get_format() const = 0;
 
 	virtual void set_width(size_t width) = 0;

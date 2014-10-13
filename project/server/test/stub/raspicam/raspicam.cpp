@@ -31,6 +31,16 @@ size_t RaspiCam::getImageTypeSize(RASPICAM_FORMAT type) const
 	return RASPICAM_FORMAT_RGB;
 }
 
+unsigned int RaspiCam::getWidth() const
+{
+	return 0;
+}
+
+unsigned int RaspiCam::getHeight() const
+{
+	return 0;
+}
+
 RASPICAM_FORMAT RaspiCam::getFormat() const
 {
 	return RASPICAM_FORMAT_RGB;
