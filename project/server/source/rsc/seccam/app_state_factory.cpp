@@ -31,7 +31,7 @@ std::unique_ptr<app_state_factory::state_type> app_state_factory::create(app_sta
 		case app_state_id::waiting_for_connection:
 			return std::unique_ptr<state_type>(new waiting_for_connection_state(connector_));
 		case app_state_id::signaling:
-			return std::unique_ptr<state_type>(new signaling_state());
+			return std::unique_ptr<state_type>(new signaling_state(camera_, connector_));
 		case app_state_id::video_distribution:
 			return std::unique_ptr<state_type>(new video_distribution_state(capture_worker_, send_frame_worker_));
 		default:
