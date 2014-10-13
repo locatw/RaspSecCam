@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "rsc/seccam/connector.hpp"
 
 namespace asio = boost::asio;
@@ -25,6 +26,27 @@ void connector::accept(unsigned short port)
 	}
 }
 
+std::vector<char> connector::read(size_t read_byte_size)
+{
+	if (!is_established()) {
+		throw std::runtime_error("connection is not established");
+	}
+
+	asio::streambuf buffer;
+	boost::system::error_code error;
+	asio::read(*socket_, buffer, asio::transfer_exactly(read_byte_size), error);
+
+	if (!error || error == asio::error::eof) {
+		const char* begin = asio::buffer_cast<const char*>(buffer.data());
+		const char* end = begin + buffer.size();
+		return std::vector<char>(begin, end);
+	}
+	else {
+		const std::string message = "cannot read data: " + error.message();
+		throw std::runtime_error(message);
+	}
+}
+
 void connector::write(const void* data, size_t data_byte_size)
 {
 	boost::system::error_code error;
@@ -38,7 +60,7 @@ void connector::write(const void* data, size_t data_byte_size)
 
 bool connector::is_established() const
 {
-	return acceptor_->is_open();
+	return socket_->is_open();
 }
 
 } // namespace seccam

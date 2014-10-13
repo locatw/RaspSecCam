@@ -2,6 +2,7 @@
 #define INC_RSC_SECCAM_CONNECTOR_HPP
 
 #include <memory>
+#include <vector>
 #include <boost/asio.hpp>
 
 namespace rsc {
@@ -13,6 +14,8 @@ public:
 	connector();
 
 	void accept(unsigned short port);
+
+	std::vector<char> read(size_t read_byte_size);
 
 	void write(const void* data, size_t data_byte_size);
 
