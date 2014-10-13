@@ -10,16 +10,20 @@ namespace rsc {
 namespace seccam {
 	
 class capture_worker;
+class send_frame_worker;
 
 class video_distribution_state : public fsm::state<app_state_id, app_event>
 {
 public:
-	video_distribution_state(std::shared_ptr<capture_worker>& capture_worker);
+	video_distribution_state(
+		std::shared_ptr<capture_worker>& capture_worker,
+		std::shared_ptr<send_frame_worker>& send_frame_worker);
 
 	void on_entry() override;
 
 private:
-	std::shared_ptr<capture_worker>& capture_worker_;
+	std::shared_ptr<capture_worker> capture_worker_;
+	std::shared_ptr<send_frame_worker> send_frame_worker_;
 };
 
 } // namespace seccam

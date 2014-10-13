@@ -5,14 +5,12 @@
 namespace rsc {
 namespace seccam {
 	
-signaling_state::signaling_state(std::shared_ptr<send_frame_worker>& send_frame_worker)
-	: state(app_state_id::signaling), send_frame_worker_(send_frame_worker)
+signaling_state::signaling_state()
+	: state(app_state_id::signaling)
 {}
 
 void signaling_state::on_entry()
 {
-	send_frame_worker_->start();
-
 	notify_event(app_event::signaling_succeeded);
 }
 

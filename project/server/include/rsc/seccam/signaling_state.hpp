@@ -9,17 +9,12 @@
 namespace rsc {
 namespace seccam {
 
-class send_frame_worker;
-	
 class signaling_state : public fsm::state<app_state_id, app_event>
 {
 public:
-	signaling_state(std::shared_ptr<send_frame_worker>& send_frame_worker);
+	signaling_state();
 
 	void on_entry() override;
-
-private:
-	std::shared_ptr<send_frame_worker>& send_frame_worker_;
 };
 
 } // namespace seccam
