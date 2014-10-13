@@ -6,17 +6,6 @@
 #include "rsc/seccam/raspi_camera.hpp"
 
 namespace {
-	std::string to_string(rsc::seccam::camera_format format)
-	{
-		switch (format) {
-			case rsc::seccam::camera_format::BGR:
-				return "BGR";
-			default:
-				const std::string message = (boost::format("unknown camera_format [%1%]") % static_cast<int>(format)).str();
-				throw std::logic_error(message);
-		}
-	}
-
 	std::string to_string(raspicam::RASPICAM_FORMAT format)
 	{
 		switch (format) {
@@ -101,7 +90,7 @@ void raspi_camera::set_format(camera_format format)
 			raspi_format = raspicam::RASPICAM_FORMAT_BGR;
 			break;
 		default:
-			const std::string message = (boost::format("unknown camera format [%1%]") % ::to_string(format)).str();
+			const std::string message = (boost::format("unknown camera format [%1%]") % to_string(format)).str();
 			throw std::logic_error(message);
 	}
 
