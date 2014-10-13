@@ -49,6 +49,11 @@ class BuildTask
   end
 end
 
+# run command with time measuring
+def timed_sh(command)
+  sh "time #{command}"
+end
+
 BUILD_ROOT = "build"
 BUILD_SRC_DIR = BUILD_ROOT + "/source"
 BUILD_TEST_DIR = BUILD_ROOT + "/test"
@@ -67,9 +72,9 @@ namespace server_task.namespace do
   desc "Build executable"
   task server_task.build_task => server_task.setup_task do |t|
     cd server_task.build_dir do
-      sh "cmake -DCMAKE_INSTALL_PREFIX=../.. ../.."
-      sh "make"
-      sh "make install"
+      timed_sh "cmake -DCMAKE_INSTALL_PREFIX=../.. ../.."
+      timed_sh "make"
+      timed_sh "make install"
     end
   end
   
@@ -87,9 +92,9 @@ namespace server_task.namespace do
   desc "Build unit test executable"
   task server_task.build_test_task => server_task.setup_test_task do |t|
     cd server_task.build_dir do
-      sh "cmake -DCMAKE_INSTALL_PREFIX=../.. -DBUILD_TYPE=test ../.."
-      sh "make"
-      sh "make install"
+      timed_sh "cmake -DCMAKE_INSTALL_PREFIX=../.. -DBUILD_TYPE=test ../.."
+      timed_sh "make"
+      timed_sh "make install"
     end
   end
 
@@ -102,7 +107,7 @@ namespace server_task.namespace do
   desc "Run unit test"
   task server_task.run_test_task => server_task.build_test_task do |t|
     cd server_task.bin_dir do
-      sh "./#{server_task.test_target}"
+      timed_sh "./#{server_task.test_target}"
     end
   end
 
@@ -125,6 +130,6 @@ namespace server_task.namespace do
     raspi_path = "#{user}@#{host}"
     src_path = server_task.target_path
     dest_path = "#{raspi_path}:~/dev/#{PRODUCT}/"
-    sh "rsync #{src_path} #{dest_path}"
+    timed_sh "rsync #{src_path} #{dest_path}"
   end
 end
