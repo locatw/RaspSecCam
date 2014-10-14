@@ -73,7 +73,7 @@ namespace server_task.namespace do
   task server_task.build_task => server_task.setup_task do |t|
     cd server_task.build_dir do
       timed_sh "cmake -DCMAKE_INSTALL_PREFIX=../.. ../.."
-      timed_sh "make"
+      timed_sh "make -j4"
       timed_sh "make install"
     end
   end
@@ -93,7 +93,7 @@ namespace server_task.namespace do
   task server_task.build_test_task => server_task.setup_test_task do |t|
     cd server_task.build_dir do
       timed_sh "cmake -DCMAKE_INSTALL_PREFIX=../.. -DBUILD_TYPE=test ../.."
-      timed_sh "make"
+      timed_sh "make -j4"
       timed_sh "make install"
     end
   end
