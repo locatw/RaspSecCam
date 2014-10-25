@@ -1,3 +1,7 @@
+#include <iostream>
+#include <boost/log/attributes.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup/file.hpp>
 #include "rsc/seccam/app_state_factory.hpp"
 #include "rsc/seccam/app_state_machine_builder.hpp"
 #include "rsc/seccam/capture_worker.hpp"
@@ -6,6 +10,12 @@
 #include "rsc/seccam/send_frame_worker.hpp"
 #include "rsc/seccam/security_camera.hpp"
 #include "rsc/seccam/task_mediator.hpp"
+
+rsc::seccam::security_camera::security_camera()
+	: state_machine_(), camera_(), connector_()
+{
+	initialize_logger();
+}
 
 void rsc::seccam::security_camera::run()
 {
@@ -25,4 +35,16 @@ void rsc::seccam::security_camera::run()
 	state_machine_ = state_machine_builder.build(std::move(state_factory));
 
 	state_machine_->run();
+}
+
+void rsc::seccam::security_camera::initialize_logger()
+{
+	boost::log::add_file_log(
+		boost::log::keywords::file_name = "log/%Y%m%d_%H%M%S_%5N.log",
+		boost::log::keywords::rotation_size = 1024 * 1024,	// maximum file size is 1MB per file
+		boost::log::keywords::format = "[%TimeStamp%]: %Message%",
+		boost::log::keywords::auto_flush = true);
+
+	auto logger = boost::log::core::get();
+	logger->add_global_attribute("TimeStamp", boost::log::attributes::local_clock());
 }

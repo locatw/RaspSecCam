@@ -15,9 +15,12 @@ class connector;
 class security_camera
 {
 public:
-	security_camera() = default;
+	security_camera();
 
 	void run();
+
+private:
+	void initialize_logger();
 
 private:
 	typedef fsm::state_machine<app_state_id, app_event> state_machine_type;
