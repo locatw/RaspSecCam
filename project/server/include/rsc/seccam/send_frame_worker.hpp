@@ -2,8 +2,10 @@
 #define RSC_SECCAM_SEND_FRAME_WORKER_HPP
 
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <thread>
+#include <boost/system/error_code.hpp>
 
 namespace rsc {
 namespace seccam {
@@ -20,12 +22,12 @@ public:
 
 	~send_frame_worker() = default;
 
-	void start();
+	void start(std::function<void(const boost::system::error_code&)> on_error);
 
 	void stop();
 
 private:
-	void send_frame_repeatedly();
+	void send_frame_repeatedly(std::function<void(const boost::system::error_code&)> on_error);
 
 private:
 	std::shared_ptr<task_mediator> task_mediator_;

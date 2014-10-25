@@ -1,3 +1,4 @@
+#include <functional>
 #include <thread>
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/send_frame_worker.hpp"
@@ -16,12 +17,29 @@ video_distribution_state::video_distribution_state(
 
 void video_distribution_state::on_entry()
 {
-	capture_worker_->start();
-	send_frame_worker_->start();
+	using std::placeholders::_1;
+	
+	try {
+		std::unique_lock<std::mutex> lock(mutex_);
 
-	while (true) {
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		capture_worker_->start();
+		send_frame_worker_->start(std::bind(&video_distribution_state::on_error, this, _1));
+
+		error_condition_.wait(lock);
+
+		capture_worker_->stop();
+		send_frame_worker_->stop();
+
+		notify_event(app_event::error_occurred);
 	}
+	catch (...) {
+		notify_event(app_event::error_occurred);
+	}
+}
+
+void video_distribution_state::on_error(const boost::system::error_code& error)
+{
+	error_condition_.notify_all();
 }
 
 } // namespace seccam

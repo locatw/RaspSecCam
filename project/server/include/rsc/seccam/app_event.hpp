@@ -7,7 +7,8 @@ namespace seccam {
 enum class app_event
 {
 	connection_established,
-	signaling_succeeded
+	signaling_succeeded,
+	error_occurred
 };
 
 } // namespace seccam

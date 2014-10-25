@@ -1,4 +1,3 @@
-#include <iostream>
 #include "rsc/seccam/camera.hpp"
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/connector.hpp"
@@ -19,22 +18,31 @@ void signaling_state::on_entry()
 		throw std::runtime_error("camera is not opened");
 	}
 
-	const camera_format format = camera_->get_format();
-	const size_t width = camera_->get_width();
-	const size_t height = camera_->get_height();
-	
-	write_camera_format(format);
-	write_camera_width(width);
-	write_camera_height(height);
+	try {
+		const camera_format format = camera_->get_format();
+		const size_t width = camera_->get_width();
+		const size_t height = camera_->get_height();
+		
+		write_camera_format(format);
+		write_camera_width(width);
+		write_camera_height(height);
 
-	notify_event(app_event::signaling_succeeded);
+		notify_event(app_event::signaling_succeeded);
+	}
+	catch (...) {
+		notify_event(app_event::error_occurred);
+	}
 }
 
 void signaling_state::write_camera_format(const camera_format& format)
 {
 	const std::string format_str = to_string(format);
+	boost::system::error_code error;
 
-	connector_->write(format_str.c_str(), format_str.size());
+	connector_->write(format_str.c_str(), format_str.size(), error);
+	if (error) {
+		throw std::runtime_error(error.message());
+	}
 }
 
 void signaling_state::write_camera_width(size_t width)
@@ -49,7 +57,11 @@ void signaling_state::write_camera_height(size_t height)
 
 void signaling_state::write_size(size_t size)
 {
-	connector_->write(&size, sizeof(size_t));
+	boost::system::error_code error;
+	connector_->write(&size, sizeof(size_t), error);
+	if (error) {
+		throw std::runtime_error(error.message());
+	}
 }
 
 } // namespace seccam

@@ -15,9 +15,9 @@ public:
 
 	void accept(unsigned short port);
 
-	std::vector<char> read(size_t read_byte_size);
+	std::vector<char> read(size_t read_byte_size, boost::system::error_code& error);
 
-	void write(const void* data, size_t data_byte_size);
+	void write(const void* data, size_t data_byte_size, boost::system::error_code& error);
 
 	bool is_established() const;
 

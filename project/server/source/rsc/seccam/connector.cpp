@@ -12,6 +12,16 @@ connector::connector()
 
 void connector::accept(unsigned short port)
 {
+	if (socket_) {
+		socket_->close();
+	}
+	if (acceptor_) {
+		acceptor_->close();
+	}
+	if (io_service_) {
+		io_service_->stop();
+	}
+
 	io_service_ = std::unique_ptr<asio::io_service>(new asio::io_service());
 	acceptor_ = std::unique_ptr<asio::ip::tcp::acceptor>(
 					new asio::ip::tcp::acceptor(
@@ -26,14 +36,13 @@ void connector::accept(unsigned short port)
 	}
 }
 
-std::vector<char> connector::read(size_t read_byte_size)
+std::vector<char> connector::read(size_t read_byte_size, boost::system::error_code& error)
 {
 	if (!is_established()) {
 		throw std::runtime_error("connection is not established");
 	}
 
 	asio::streambuf buffer;
-	boost::system::error_code error;
 	asio::read(*socket_, buffer, asio::transfer_exactly(read_byte_size), error);
 
 	if (!error || error == asio::error::eof) {
@@ -42,19 +51,15 @@ std::vector<char> connector::read(size_t read_byte_size)
 		return std::vector<char>(begin, end);
 	}
 	else {
-		const std::string message = "cannot read data: " + error.message();
-		throw std::runtime_error(message);
+		return std::vector<char>();
 	}
 }
 
-void connector::write(const void* data, size_t data_byte_size)
+void connector::write(const void* data, size_t data_byte_size, boost::system::error_code& error)
 {
-	boost::system::error_code error;
 	asio::write(*socket_, asio::buffer(data, data_byte_size), error);
 
 	if (error) {
-		const std::string message = "cannot send data: " + error.message();
-		throw std::runtime_error(message);
 	}
 }
 

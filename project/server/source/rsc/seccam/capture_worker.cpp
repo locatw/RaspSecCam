@@ -17,6 +17,7 @@ void capture_worker::start()
 		throw std::runtime_error("camera is not opened.");
 	}
 
+	capture_thread_canceled_ = false;
 	capture_thread_ = std::thread(&capture_worker::capture_repeatedly, this);
 }
 
