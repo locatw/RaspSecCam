@@ -17,6 +17,11 @@ send_frame_worker::send_frame_worker(
 	  send_frame_thread_canceled_(false)
 {}
 
+send_frame_worker::~send_frame_worker()
+{
+	stop();
+}
+
 void send_frame_worker::start(std::function<void(const boost::system::error_code&)> on_error)
 {
 	send_frame_thread_canceled_ = false;

@@ -11,6 +11,11 @@ capture_worker::capture_worker(std::shared_ptr<camera>& camera, std::shared_ptr<
 	: camera_(camera), task_mediator_(task_mediator), capture_thread_(), capture_thread_canceled_(false)
 {}
 
+capture_worker::~capture_worker()
+{
+	stop();
+}
+
 void capture_worker::start()
 {
 	if (!camera_->is_opened()) {

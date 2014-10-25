@@ -20,7 +20,7 @@ public:
 		std::shared_ptr<task_mediator>& task_mediator,
 		std::shared_ptr<connector>& connector);
 
-	~send_frame_worker() = default;
+	~send_frame_worker();
 
 	void start(std::function<void(const boost::system::error_code&)> on_error);
 

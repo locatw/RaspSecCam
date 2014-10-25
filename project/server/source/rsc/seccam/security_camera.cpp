@@ -25,7 +25,4 @@ void rsc::seccam::security_camera::run()
 	state_machine_ = state_machine_builder.build(std::move(state_factory));
 
 	state_machine_->run();
-
-	capture_worker->stop();
-	send_frame_worker->stop();
 }
