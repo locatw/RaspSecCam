@@ -3,10 +3,8 @@
 
 #include <memory>
 #include <boost/optional.hpp>
-#include "rsc/seccam/app_state_id.hpp"
-#include "rsc/seccam/app_event.hpp"
+#include "rsc/seccam/app_state.hpp"
 #include "rsc/seccam/camera_format.hpp"
-#include "rsc/seccam/fsm/state.hpp"
 
 namespace rsc {
 namespace seccam {
@@ -14,7 +12,7 @@ namespace seccam {
 class camera;
 class connector;
 	
-class signaling_state : public fsm::state<app_state_id, app_event>
+class signaling_state : public app_state
 {
 public:
 	signaling_state(

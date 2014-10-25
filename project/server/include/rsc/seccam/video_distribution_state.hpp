@@ -6,9 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <boost/system/error_code.hpp>
-#include "rsc/seccam/app_state_id.hpp"
-#include "rsc/seccam/app_event.hpp"
-#include "rsc/seccam/fsm/state.hpp"
+#include "rsc/seccam/app_state.hpp"
 
 namespace rsc {
 namespace seccam {
@@ -16,7 +14,7 @@ namespace seccam {
 class capture_worker;
 class send_frame_worker;
 
-class video_distribution_state : public fsm::state<app_state_id, app_event>
+class video_distribution_state : public app_state
 {
 public:
 	video_distribution_state(

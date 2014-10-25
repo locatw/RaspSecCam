@@ -9,11 +9,13 @@ namespace rsc {
 namespace seccam {
 	
 camera_setting_state::camera_setting_state(std::shared_ptr<camera>& camera)
-	: state(app_state_id::camera_setting), camera_(camera)
+	: app_state(app_state_id::camera_setting), camera_(camera)
 {}
 
 void camera_setting_state::on_entry()
 {
+	app_state::on_entry();
+
 	camera_->set_format(rsc::seccam::camera_format::BGR);
 	camera_->set_width(480);
 	camera_->set_height(320);

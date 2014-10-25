@@ -10,11 +10,13 @@ namespace seccam {
 signaling_state::signaling_state(
 	std::shared_ptr<camera>& camera,
 	std::shared_ptr<connector>& connector)
-	: state(app_state_id::signaling), camera_(camera), connector_(connector)
+	: app_state(app_state_id::signaling), camera_(camera), connector_(connector)
 {}
 
 void signaling_state::on_entry()
 {
+	app_state::on_entry();
+	
 	try {
 		if (!camera_->is_opened()) {
 			throw std::runtime_error("camera is not opened");
