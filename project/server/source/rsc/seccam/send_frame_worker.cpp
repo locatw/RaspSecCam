@@ -1,3 +1,4 @@
+#include <boost/log/trivial.hpp>
 #include "rsc/seccam/camera_frame.hpp"
 #include "rsc/seccam/connector.hpp"
 #include "rsc/seccam/send_frame_worker.hpp"
@@ -39,6 +40,8 @@ void send_frame_worker::stop()
 
 void send_frame_worker::send_frame_repeatedly(std::function<void(const boost::system::error_code&)> on_error)
 {
+	BOOST_LOG_TRIVIAL(info) << "start sending frame";
+
 	while (!send_frame_thread_canceled_) {
 		auto frame = task_mediator_->get_camera_frame();
 		const size_t data_size = frame->size();
@@ -62,6 +65,8 @@ void send_frame_worker::send_frame_repeatedly(std::function<void(const boost::sy
 			}
 		}
 	}
+
+	BOOST_LOG_TRIVIAL(info) << "sending frame stopped";
 }
 
 } // namespace seccam

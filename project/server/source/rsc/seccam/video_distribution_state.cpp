@@ -1,5 +1,6 @@
 #include <functional>
 #include <thread>
+#include <boost/log/trivial.hpp>
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/send_frame_worker.hpp"
 #include "rsc/seccam/video_distribution_state.hpp"
@@ -32,7 +33,8 @@ void video_distribution_state::on_entry()
 
 		notify_event(app_event::error_occurred);
 	}
-	catch (...) {
+	catch (const std::exception& e) {
+		BOOST_LOG_TRIVIAL(error) << e.what();
 		notify_event(app_event::error_occurred);
 	}
 }

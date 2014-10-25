@@ -1,3 +1,4 @@
+#include <boost/log/trivial.hpp>
 #include "rsc/seccam/camera.hpp"
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/connector.hpp"
@@ -14,11 +15,11 @@ signaling_state::signaling_state(
 
 void signaling_state::on_entry()
 {
-	if (!camera_->is_opened()) {
-		throw std::runtime_error("camera is not opened");
-	}
-
 	try {
+		if (!camera_->is_opened()) {
+			throw std::runtime_error("camera is not opened");
+		}
+
 		const camera_format format = camera_->get_format();
 		const size_t width = camera_->get_width();
 		const size_t height = camera_->get_height();
@@ -29,7 +30,8 @@ void signaling_state::on_entry()
 
 		notify_event(app_event::signaling_succeeded);
 	}
-	catch (...) {
+	catch (const std::exception& e) {
+		BOOST_LOG_TRIVIAL(error) << e.what();
 		notify_event(app_event::error_occurred);
 	}
 }
@@ -39,6 +41,7 @@ void signaling_state::write_camera_format(const camera_format& format)
 	const std::string format_str = to_string(format);
 	boost::system::error_code error;
 
+	BOOST_LOG_TRIVIAL(info) << "send camera format";
 	connector_->write(format_str.c_str(), format_str.size(), error);
 	if (error) {
 		throw std::runtime_error(error.message());
@@ -47,11 +50,13 @@ void signaling_state::write_camera_format(const camera_format& format)
 
 void signaling_state::write_camera_width(size_t width)
 {
+	BOOST_LOG_TRIVIAL(info) << "send camera width";
 	write_size(width);
 }
 
 void signaling_state::write_camera_height(size_t height)
 {
+	BOOST_LOG_TRIVIAL(info) << "send camera height";
 	write_size(height);
 }
 

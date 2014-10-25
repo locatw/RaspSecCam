@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <boost/log/trivial.hpp>
 #include "rsc/seccam/connector.hpp"
 
 namespace asio = boost::asio;
@@ -28,12 +29,17 @@ void connector::accept(unsigned short port)
 						*io_service_, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)));
 	socket_ = std::unique_ptr<asio::ip::tcp::socket>(new asio::ip::tcp::socket(*io_service_));
 
+	BOOST_LOG_TRIVIAL(info) << "wait for connection";
+
 	boost::system::error_code error;
 	acceptor_->accept(*socket_, error);
 
 	if (error) {
 		throw std::runtime_error("cannot accept");
 	}
+
+	auto remote_endpoint = socket_->remote_endpoint();
+	BOOST_LOG_TRIVIAL(info) << "connected from " << remote_endpoint.address().to_string();
 }
 
 std::vector<char> connector::read(size_t read_byte_size, boost::system::error_code& error)

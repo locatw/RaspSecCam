@@ -1,5 +1,6 @@
 #include <chrono>
 #include <thread>
+#include <boost/log/trivial.hpp>
 #include "rsc/seccam/camera_format.hpp"
 #include "rsc/seccam/camera.hpp"
 #include "rsc/seccam/camera_setting_state.hpp"
@@ -23,6 +24,8 @@ void camera_setting_state::on_entry()
 
 	// wait until camera device calibration finished.
 	std::this_thread::sleep_for(std::chrono::seconds(3));
+
+	BOOST_LOG_TRIVIAL(info) << "finish camera setting";
 }
 
 } // namespace seccam

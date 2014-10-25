@@ -3,6 +3,7 @@
 #include <memory>
 #include <stdexcept>
 #include <thread>
+#include <boost/log/trivial.hpp>
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/camera_format.hpp"
 #include "rsc/seccam/camera_frame.hpp"
@@ -21,9 +22,10 @@ int main(int argc, char* argv[])
 		sec_cam.run();
 	}
 	catch (const std::exception& e) {
-		std::cout << "error occurred : " << e.what() << std::endl;
-		std::cout << "finish." << std::endl;
+		BOOST_LOG_TRIVIAL(error) << e.what();
 	}
+
+	BOOST_LOG_TRIVIAL(info) << "end" << std::endl;
 
 	return 0;
 }

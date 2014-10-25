@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <vector>
+#include <boost/log/trivial.hpp>
 #include "rsc/seccam/camera.hpp"
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/task_mediator.hpp"
@@ -37,6 +38,8 @@ void capture_worker::stop()
 
 void capture_worker::capture_repeatedly()
 {
+	BOOST_LOG_TRIVIAL(info) << "start capturing";
+
 	while (!capture_thread_canceled_) {
 		task_mediator_->request_capturing_permission();
 
@@ -46,6 +49,8 @@ void capture_worker::capture_repeatedly()
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(16));
 	}
+
+	BOOST_LOG_TRIVIAL(info) << "capturing stopped";
 }
 
 }}
