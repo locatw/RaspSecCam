@@ -35,5 +35,10 @@ void task_mediator::pop_from_queue()
 	frame_queue_.pop();
 }
 
+void task_mediator::notify_disconnection()
+{
+	frame_not_exists_.notify_all();
+}
+
 } // namespace seccam
 } // namespace rsc

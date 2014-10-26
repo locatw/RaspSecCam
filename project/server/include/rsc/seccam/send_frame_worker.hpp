@@ -62,6 +62,7 @@ private:
 				break;
 			}
 		}
+		task_mediator_->notify_disconnection();
 	
 		BOOST_LOG_TRIVIAL(info) << "sending frame stopped";
 	}

@@ -24,6 +24,8 @@ public:
 
 	virtual std::shared_ptr<camera_frame> get_camera_frame();
 
+	virtual void notify_disconnection();
+
 private:
 	void pop_from_queue();
 

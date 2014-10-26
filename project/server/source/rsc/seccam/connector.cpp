@@ -64,6 +64,7 @@ void connector::write(const void* data, size_t data_byte_size, boost::system::er
 	asio::write(*socket_, asio::buffer(data, data_byte_size), error);
 
 	if (error) {
+		BOOST_LOG_TRIVIAL(error) << error.message();
 	}
 }
 
