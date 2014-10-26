@@ -8,7 +8,7 @@ namespace rsc {
 namespace seccam {
 	
 connector::connector()
-	: io_service_(), acceptor_(), socket_()
+	: io_service_(new asio::io_service()), acceptor_(), socket_(new asio::ip::tcp::socket(*io_service_))
 {}
 
 void connector::accept(unsigned short port)
@@ -23,11 +23,9 @@ void connector::accept(unsigned short port)
 		io_service_->stop();
 	}
 
-	io_service_ = std::unique_ptr<asio::io_service>(new asio::io_service());
 	acceptor_ = std::unique_ptr<asio::ip::tcp::acceptor>(
 					new asio::ip::tcp::acceptor(
 						*io_service_, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)));
-	socket_ = std::unique_ptr<asio::ip::tcp::socket>(new asio::ip::tcp::socket(*io_service_));
 
 	BOOST_LOG_TRIVIAL(info) << "wait for connection";
 

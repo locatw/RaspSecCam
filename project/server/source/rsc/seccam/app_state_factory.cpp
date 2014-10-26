@@ -16,7 +16,7 @@ app_state_factory::app_state_factory(
 	std::shared_ptr<camera>& camera,
 	std::shared_ptr<connector>& connector,
 	std::shared_ptr<capture_worker>& capture_worker,
-	std::shared_ptr<send_frame_worker>& send_frame_worker)
+	std::shared_ptr<send_frame_worker<raw_frame_protocol>>& send_frame_worker)
 	: camera_(camera),
 	  connector_(connector),
 	  capture_worker_(capture_worker),
