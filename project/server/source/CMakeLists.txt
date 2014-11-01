@@ -13,8 +13,8 @@ INCLUDE_DIRECTORIES(
 	"../${INCLUDE_DIR}"
 	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/include")
 LINK_DIRECTORIES(
-	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/lib/boost/"
-	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/lib/raspicam/"
+	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/lib/arm-linux-gnueabihf/"
+	"$ENV{HOME}/raspi-dev/opt/rootfs/usr/local/lib/"
 	"$ENV{HOME}/raspi-dev/opt/userland/build/lib/")
 
 FILE(GLOB_RECURSE SOURCES "*.cpp")
@@ -31,7 +31,10 @@ TARGET_LINK_LIBRARIES(${TARGET}
 	boost_log
 	boost_log_setup
 	boost_thread
+	opencv_core
+	opencv_highgui
 	pthread
+	z
 	raspicam
 	mmal
 	mmal_core

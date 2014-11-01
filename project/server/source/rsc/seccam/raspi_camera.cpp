@@ -45,7 +45,11 @@ std::shared_ptr<camera_frame> raspi_camera::retrieve()
 	std::vector<unsigned char> buffer(this->get_frame_size());
 	camera_.retrieve(buffer.data());
 
-	return std::make_shared<camera_frame>(buffer);
+	return std::make_shared<camera_frame>(
+		get_format(),
+		get_width(),
+		get_height(),
+		buffer);
 }
 
 size_t raspi_camera::get_width() const

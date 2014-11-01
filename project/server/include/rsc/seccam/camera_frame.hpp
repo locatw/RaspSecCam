@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <memory>
 #include <vector>
+#include "rsc/seccam/camera_format.hpp"
 
 namespace rsc {
 namespace seccam {
@@ -18,16 +19,29 @@ public:
 
 	~camera_frame() = default;
 
-	explicit camera_frame(const std::vector<unsigned char>& frame);
+	camera_frame(
+		const camera_format& format,
+		size_t width,
+		size_t height,
+		const std::vector<unsigned char>& frame_data);
 
 	size_t size() const;
+
+	size_t width() const;
+
+	size_t height() const;
+
+	camera_format format() const;
 
 	unsigned char* data();
 
 	const unsigned char* data() const;
 
 private:
-	std::vector<unsigned char> frame_;
+	camera_format format_;
+	size_t width_;
+	size_t height_;
+	std::vector<unsigned char> frame_data_;
 };
 
 }}

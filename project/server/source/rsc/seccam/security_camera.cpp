@@ -6,6 +6,7 @@
 #include "rsc/seccam/app_state_machine_builder.hpp"
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/connector.hpp"
+#include "rsc/seccam/encoded_frame_protocol.hpp"
 #include "rsc/seccam/raspi_camera.hpp"
 #include "rsc/seccam/raw_frame_protocol.hpp"
 #include "rsc/seccam/send_frame_worker.hpp"
@@ -24,7 +25,7 @@ void rsc::seccam::security_camera::run()
 	connector_ = std::make_shared<rsc::seccam::connector>();
 	auto task_mediator = std::make_shared<rsc::seccam::task_mediator>();
 	auto capture_worker = std::make_shared<rsc::seccam::capture_worker>(camera_, task_mediator);
-	auto send_frame_worker = std::make_shared<rsc::seccam::send_frame_worker<raw_frame_protocol>>(task_mediator, connector_);
+	auto send_frame_worker = std::make_shared<rsc::seccam::send_frame_worker<encoded_frame_protocol>>(task_mediator, connector_);
 
 	auto state_factory = std::unique_ptr<rsc::seccam::app_state_factory>(
 		new app_state_factory(
