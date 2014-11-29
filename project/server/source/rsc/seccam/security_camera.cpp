@@ -7,6 +7,7 @@
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/connector.hpp"
 #include "rsc/seccam/encoded_frame_protocol.hpp"
+#include "rsc/seccam/indicator.hpp"
 #include "rsc/seccam/raspi_camera.hpp"
 #include "rsc/seccam/raw_frame_protocol.hpp"
 #include "rsc/seccam/send_frame_worker.hpp"
@@ -14,13 +15,15 @@
 #include "rsc/seccam/task_mediator.hpp"
 
 rsc::seccam::security_camera::security_camera()
-	: state_machine_(), camera_(), connector_()
+	: state_machine_(), camera_(), connector_(), indicator_(new indicator())
 {
 	initialize_logger();
 }
 
 void rsc::seccam::security_camera::run()
 {
+	indicator_->initialize();
+
 	camera_ = std::static_pointer_cast<rsc::seccam::camera>(std::make_shared<raspi_camera>());
 	connector_ = std::make_shared<rsc::seccam::connector>();
 	auto task_mediator = std::make_shared<rsc::seccam::task_mediator>();
@@ -32,7 +35,8 @@ void rsc::seccam::security_camera::run()
 			camera_,
 			connector_,
 			capture_worker,
-			send_frame_worker));
+			send_frame_worker,
+			indicator_));
 	rsc::seccam::app_state_machine_builder state_machine_builder;
 	state_machine_ = state_machine_builder.build(std::move(state_factory));
 

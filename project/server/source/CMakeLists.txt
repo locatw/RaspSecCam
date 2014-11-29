@@ -36,6 +36,7 @@ TARGET_LINK_LIBRARIES(${TARGET}
 	pthread
 	z
 	raspicam
+	wiringPi
 	mmal
 	mmal_core
 	mmal_util

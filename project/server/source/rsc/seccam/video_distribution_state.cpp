@@ -3,6 +3,7 @@
 #include <boost/log/trivial.hpp>
 #include "rsc/seccam/capture_worker.hpp"
 #include "rsc/seccam/encoded_frame_protocol.hpp"
+#include "rsc/seccam/indicator.hpp"
 #include "rsc/seccam/send_frame_worker.hpp"
 #include "rsc/seccam/raw_frame_protocol.hpp"
 #include "rsc/seccam/video_distribution_state.hpp"
@@ -12,10 +13,12 @@ namespace seccam {
 	
 video_distribution_state::video_distribution_state(
 	std::shared_ptr<capture_worker>& capture_worker,
-	std::shared_ptr<send_frame_worker<encoded_frame_protocol>>& send_frame_worker)
+	std::shared_ptr<send_frame_worker<encoded_frame_protocol>>& send_frame_worker,
+	std::shared_ptr<indicator>& indicator)
 	: app_state(app_state_id::video_distribution),
 	  capture_worker_(capture_worker),
-	  send_frame_worker_(send_frame_worker)
+	  send_frame_worker_(send_frame_worker),
+	  indicator_(indicator)
 {}
 
 void video_distribution_state::on_entry()
@@ -25,6 +28,8 @@ void video_distribution_state::on_entry()
 	app_state::on_entry();
 	
 	try {
+		indicator_->set_sending_video_indicator(true);
+
 		std::unique_lock<std::mutex> lock(mutex_);
 
 		capture_worker_->start();
@@ -41,6 +46,11 @@ void video_distribution_state::on_entry()
 		BOOST_LOG_TRIVIAL(error) << e.what();
 		notify_event(app_event::error_occurred);
 	}
+}
+
+void video_distribution_state::on_exit()
+{
+	indicator_->set_sending_video_indicator(false);
 }
 
 void video_distribution_state::on_error(const boost::system::error_code& error)

@@ -13,6 +13,7 @@ namespace seccam {
 	
 class capture_worker;
 class encoded_frame_protocol;
+class indicator;
 class raw_frame_protocol;
 
 template<class protocol_t>
@@ -23,9 +24,12 @@ class video_distribution_state : public app_state
 public:
 	video_distribution_state(
 		std::shared_ptr<capture_worker>& capture_worker,
-		std::shared_ptr<send_frame_worker<encoded_frame_protocol>>& send_frame_worker);
+		std::shared_ptr<send_frame_worker<encoded_frame_protocol>>& send_frame_worker,
+		std::shared_ptr<indicator>& indicator);
 
 	void on_entry() override;
+
+	void on_exit() override;
 
 private:
 	void on_error(const boost::system::error_code& error);
@@ -33,6 +37,7 @@ private:
 private:
 	std::shared_ptr<capture_worker> capture_worker_;
 	std::shared_ptr<send_frame_worker<encoded_frame_protocol>> send_frame_worker_;
+	std::shared_ptr<indicator> indicator_;
 	std::mutex mutex_;
 	std::condition_variable error_condition_;
 };

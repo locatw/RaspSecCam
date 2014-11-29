@@ -11,6 +11,7 @@ namespace seccam {
 
 class camera;
 class connector;
+class indicator;
 
 class security_camera
 {
@@ -29,6 +30,7 @@ private:
 	std::unique_ptr<state_machine_type> state_machine_;
 	std::shared_ptr<camera> camera_;
 	std::shared_ptr<connector> connector_;
+	std::shared_ptr<indicator> indicator_;
 };
 
 } // namespace seccam
